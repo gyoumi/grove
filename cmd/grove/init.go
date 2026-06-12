@@ -112,8 +112,9 @@ const initIndexHTML = `<!doctype html>
 </html>
 `
 
-// themeCSS is Tailwind v4 plus the shadcn CSS-variable theme, so class
-// strings written for shadcn components work in grove apps unchanged.
+// themeCSS is Tailwind v4 plus grove's CSS-variable design system: every
+// color and radius the ui components use is a variable here, so restyling
+// an app (including dark mode) means editing variables, not components.
 const themeCSS = `@import "tailwindcss";
 @source "../**/*.go";
 

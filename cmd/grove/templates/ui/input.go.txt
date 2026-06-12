@@ -19,7 +19,7 @@ type InputProps struct {
 	OnKeyDown   func(*g.Event)
 }
 
-// Input renders a shadcn-style text input. When OnInput is set the input is
+// Input renders a themed text input. When OnInput is set the input is
 // controlled: Value is re-synced to the DOM on every render.
 func Input(p InputProps, args ...any) *g.Node {
 	typ := p.Type

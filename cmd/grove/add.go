@@ -20,6 +20,7 @@ var templates embed.FS
 // declared as package ui so they drop into an app's ui/ directory.
 var components = map[string][]string{
 	"alert":     {"alert.go"},
+	"avatar":    {"avatar.go"},
 	"badge":     {"badge.go"},
 	"button":    {"button.go"},
 	"card":      {"card.go"},
@@ -28,6 +29,8 @@ var components = map[string][]string{
 	"input":     {"input.go"},
 	"label":     {"label.go"},
 	"separator": {"separator.go"},
+	"switch":    {"switch.go"},
+	"tooltip":   {"tooltip.go"},
 }
 
 func componentNames() []string {

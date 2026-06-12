@@ -1,5 +1,5 @@
-// Showcase of the ui package: every ported shadcn component on the shadcn
-// theme, with a dark-mode toggle and a working modal dialog.
+// Showcase of the ui package: every component on the default theme, with
+// a dark-mode toggle and a working modal dialog.
 // Run with: grove serve (from this directory).
 package main
 
@@ -29,7 +29,7 @@ func App() *g.Node {
 		g.Header(g.Class("flex items-center justify-between"),
 			g.Div(
 				g.H1(g.Class("text-2xl font-semibold tracking-tight"), "grove/ui"),
-				g.P(g.Class("text-sm text-muted-foreground"), "shadcn components, ported to Go"),
+				g.P(g.Class("text-sm text-muted-foreground"), "grove's component library"),
 			),
 			ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline, OnClick: func(*g.Event) { setDark(!dark) }}, darkLabel),
 		),

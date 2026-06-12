@@ -39,7 +39,7 @@ func Focus(handle any) {
 	}
 }
 
-// SetRootClass toggles a class on <html> — handy for shadcn-style dark mode:
+// SetRootClass toggles a class on <html> — handy for class-based dark mode:
 // dom.SetRootClass("dark", enabled).
 func SetRootClass(name string, on bool) {
 	cl := Document().Get("documentElement").Get("classList")

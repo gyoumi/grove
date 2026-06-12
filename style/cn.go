@@ -1,6 +1,6 @@
-// Package style composes Tailwind class strings the way shadcn components
-// expect: CN merges conditional classes and resolves utility conflicts
-// (later classes win), and Variants expresses variant-based class maps.
+// Package style composes Tailwind class strings for component libraries:
+// CN merges conditional classes and resolves utility conflicts (later
+// classes win), and Variants expresses variant-based class maps.
 package style
 
 import (
@@ -16,8 +16,8 @@ import (
 //	CN("bg-blue-500 px-2", "bg-red-500")               // "px-2 bg-red-500"
 //	CN("p-4", map[string]bool{"hidden": isHidden})     // conditional classes
 //
-// Conflict resolution covers the utility groups that shadcn components
-// use; unknown classes are kept verbatim (deduplicated when identical).
+// Conflict resolution covers the utility groups the ui components lean on;
+// unknown classes are kept verbatim (deduplicated when identical).
 func CN(args ...any) string {
 	var toks []string
 	var add func(a any)

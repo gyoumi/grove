@@ -2,7 +2,7 @@ package ui
 
 import g "github.com/gyoumi/grove"
 
-// Card and its parts mirror shadcn's card composition:
+// Card composes a bordered, themed panel from named parts:
 //
 //	ui.Card(
 //	    ui.CardHeader(ui.CardTitle("Title"), ui.CardDescription("...")),

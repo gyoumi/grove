@@ -1,5 +1,5 @@
 // A todo list demonstrating controlled inputs, keyed lists, and derived
-// state — styled with plain Tailwind classes on the shadcn theme.
+// state — styled with plain Tailwind classes on the default theme.
 // Run with: grove serve (from this directory).
 package main
 

@@ -24,7 +24,7 @@ type dialogArgs struct {
 // Dialog renders a modal dialog: overlay, centered panel, Escape and
 // overlay-click dismissal, focus capture while open, and focus restore on
 // close. Compose the panel from DialogHeader/DialogTitle/DialogDescription/
-// DialogFooter like shadcn:
+// DialogFooter:
 //
 //	ui.Dialog(ui.DialogProps{Open: open, OnClose: func() { setOpen(false) }},
 //	    ui.DialogHeader(ui.DialogTitle("Edit profile")),

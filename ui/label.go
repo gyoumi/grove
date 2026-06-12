@@ -2,7 +2,7 @@ package ui
 
 import g "github.com/gyoumi/grove"
 
-// Label renders a shadcn-style form label. forID associates it with a
+// Label renders a themed form label. forID associates it with a
 // control by id ("" for none).
 func Label(forID string, args ...any) *g.Node {
 	all := []any{

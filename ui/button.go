@@ -55,7 +55,7 @@ type ButtonProps struct {
 	OnClick  func(*g.Event)
 }
 
-// Button renders a shadcn-style button. Children may be strings, nodes, or
+// Button renders a themed button. Children may be strings, nodes, or
 // further grove options.
 func Button(p ButtonProps, children ...any) *g.Node {
 	typ := p.Type

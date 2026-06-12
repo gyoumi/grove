@@ -1,13 +1,13 @@
-// Package ui ports shadcn/ui components to grove: the same Tailwind class
-// recipes and CSS-variable theme, expressed as Go functions. The visual
-// design and class strings follow shadcn/ui (MIT) closely so apps styled
-// for shadcn look identical here.
+// Package ui is grove's component library: themed building blocks (Button,
+// Card, Input, Dialog, ...) styled with Tailwind utility classes on top of
+// a CSS-variable design system, so one set of variables themes every
+// component — including dark mode via the .dark class.
 //
-// Like shadcn, the intended workflow is to own the source: `grove add
-// button` copies a component's file(s) into your app's ui/ directory, where
-// you edit them freely. Importing this package directly also works when
-// you don't need to customize.
+// The intended workflow is to own the source: `grove add button` copies a
+// component's file(s) into your app's ui/ directory, where you edit them
+// freely. Importing this package directly also works when you don't need
+// to customize.
 //
-// These components assume the shadcn theme variables from `grove init`'s
+// These components assume the theme variables from `grove init`'s
 // styles/input.css are present.
 package ui

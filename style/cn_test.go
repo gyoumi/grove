@@ -33,7 +33,7 @@ func TestCN(t *testing.T) {
 		{"arbitrary value width", []any{"w-[100px] w-4"}, "w-4"},
 		{"shadow merge", []any{"shadow-sm hover:shadow-md shadow-lg"}, "hover:shadow-md shadow-lg"},
 		{"ring width vs color", []any{"ring-1 ring-ring ring-2"}, "ring-ring ring-2"},
-		{"shadcn button override", []any{"bg-primary text-primary-foreground h-9 px-4", "bg-destructive h-8"}, "text-primary-foreground px-4 bg-destructive h-8"},
+		{"component class override", []any{"bg-primary text-primary-foreground h-9 px-4", "bg-destructive h-8"}, "text-primary-foreground px-4 bg-destructive h-8"},
 		{"empty", []any{""}, ""},
 	}
 	for _, c := range cases {

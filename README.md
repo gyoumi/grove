@@ -40,8 +40,8 @@ cd myapp
 grove serve        # http://localhost:8080, rebuilds and reloads on save
 ```
 
-`grove init` scaffolds a working app with Tailwind CSS v4 and the shadcn
-theme preconfigured. No Node toolchain is involved: the CLI uses the
+`grove init` scaffolds a working app with Tailwind CSS v4 and a themeable
+design system preconfigured. No Node toolchain is involved: the CLI uses the
 Tailwind standalone binary (downloaded once, cached) and plain `go build`
 with `GOOS=js GOARCH=wasm`.
 
@@ -178,25 +178,26 @@ g.Input(g.Value(text), g.OnInput(func(e *g.Event) { setText(e.Value()) }))
 The `value`/`checked` properties are re-synced on every render, so the DOM
 can't drift from your state.
 
-## Styling and shadcn compatibility
+## Styling
 
-grove treats Tailwind class strings as the styling primitive, and ships
-shadcn's design system:
+grove treats Tailwind class strings as the styling primitive, and ships a
+themeable design system on top:
 
-1. **Theme** — `grove init` writes shadcn's CSS-variable theme
-   (`--background`, `--primary`, `--radius`, … with a `.dark` variant), so
-   classes like `bg-primary text-primary-foreground` work out of the box.
-   Toggle dark mode with `dom.SetRootClass("dark", on)`.
+1. **Theme** — `grove init` writes a CSS-variable theme (`--background`,
+   `--primary`, `--radius`, … with a `.dark` variant), so classes like
+   `bg-primary text-primary-foreground` work out of the box and restyling
+   an app means editing variables, not components. Toggle dark mode with
+   `dom.SetRootClass("dark", on)`.
 2. **Class scanning** — the generated `styles/input.css` tells Tailwind to
    scan `**/*.go`, so utilities used in Go string literals are compiled in.
-3. **`style.CN`** — clsx-style composition plus Tailwind conflict
+3. **`style.CN`** — conditional class composition plus Tailwind conflict
    resolution (`CN("p-4 bg-muted", userClass)` lets the caller's classes
-   win), and `style.Variants` mirrors class-variance-authority for
-   variant-driven components.
-4. **Ported components** — the `ui` package ports shadcn/ui components to
-   Go: Button, Badge, Card, Input, Label, Checkbox, Separator, Alert, and
-   a modal Dialog (Escape/overlay dismissal, focus trapping). Same class
-   recipes, same composition style:
+   win), and `style.Variants` for components whose look is picked by named
+   variants.
+4. **Components** — the `ui` package: Button, Badge, Card, Input, Label,
+   Checkbox, Separator, Alert, Avatar, Switch, Tooltip, and a modal Dialog
+   (Escape/overlay dismissal, focus trapping). All of it is plain Tailwind
+   on the theme variables:
 
 ```go
 ui.Card(
@@ -210,7 +211,7 @@ ui.Card(
 )
 ```
 
-Like shadcn, components are meant to be **owned, not imported**:
+Components are meant to be **owned, not imported**:
 
 ```sh
 grove add button card dialog    # copies the source into ./ui/, edit freely
@@ -224,7 +225,7 @@ class strings.)
 
 | command | what it does |
 | --- | --- |
-| `grove init <app>` | scaffold an app (Tailwind + shadcn theme, no Node) |
+| `grove init <app>` | scaffold an app (Tailwind + themeable design system, no Node) |
 | `grove serve` | dev server: rebuild on save, SSE live reload |
 | `grove build` | release build: `-s -w`, minified CSS, optional `wasm-opt`, size report |
 | `grove add <component>` | copy a ui component's source into your app |
@@ -258,8 +259,8 @@ both raw and gzipped sizes. Serve wasm with gzip or brotli enabled.
 
 ## Roadmap
 
-- React island bridge: mount real React components (e.g. unported shadcn
-  pieces) as leaf nodes inside a grove tree
+- React island bridge: mount real React components as leaf nodes inside a
+  grove tree
 - Anchored-positioning primitives (Popover, Dropdown, Tooltip)
 - Full tailwind-merge parity in `style.CN`
 - TinyGo build mode for smaller binaries

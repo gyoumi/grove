@@ -32,7 +32,7 @@ type BadgeProps struct {
 	Class   string
 }
 
-// Badge renders a shadcn-style badge.
+// Badge renders a small themed status label.
 func Badge(p BadgeProps, children ...any) *g.Node {
 	args := []any{
 		g.Class(badgeVariants.Class(map[string]string{"variant": string(p.Variant)}, p.Class)),

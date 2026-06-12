@@ -2,8 +2,9 @@ package style
 
 import "sort"
 
-// Variants expresses a component's class variants, mirroring how shadcn
-// defines them with class-variance-authority:
+// Variants expresses a component's look as named groups of class recipes —
+// a button's "variant" and "size", say — picked by string keys at render
+// time:
 //
 //	var buttonVariants = style.Variants{
 //	    Base: "inline-flex items-center ...",

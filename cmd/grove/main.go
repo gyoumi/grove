@@ -1,6 +1,6 @@
 // Command grove is the development CLI for the grove framework:
 //
-//	grove init <app>   scaffold a new app (Tailwind + shadcn theme included)
+//	grove init <app>   scaffold a new app (Tailwind + themeable design system)
 //	grove serve        dev server with rebuild-on-save and live reload
 //	grove build        production build with size report
 //	grove add <name>   copy a ui component's source into your project
