@@ -85,8 +85,8 @@ func (a *App) mount(n *Node, parent *Node, pinst *instance, parentDOM, anchor re
 			a.mount(c, n, pinst, n.dom, nil)
 		}
 		a.r.InsertBefore(parentDOM, n.dom, anchor)
-		if n.ref != nil {
-			n.ref.Current = n.dom
+		for _, ref := range n.refs {
+			ref.Current = n.dom
 		}
 
 	case kindFragment:
@@ -207,11 +207,15 @@ func (a *App) patchElement(old, new *Node) {
 	}
 	// Handlers themselves need no DOM work: dispatch reads new.events.
 
-	if old.ref != nil && old.ref != new.ref {
-		old.ref.Current = nil
+	kept := make(map[*DOMRef]bool, len(new.refs))
+	for _, ref := range new.refs {
+		kept[ref] = true
+		ref.Current = dom
 	}
-	if new.ref != nil {
-		new.ref.Current = dom
+	for _, ref := range old.refs {
+		if !kept[ref] {
+			ref.Current = nil
+		}
 	}
 }
 
@@ -304,8 +308,8 @@ func (a *App) unmount(n *Node, parentDOM renderer.Node, removeDOM bool) {
 		for _, c := range n.children {
 			a.unmount(c, n.dom, false)
 		}
-		if n.ref != nil {
-			n.ref.Current = nil
+		for _, ref := range n.refs {
+			ref.Current = nil
 		}
 		delete(a.byID, n.id)
 		if removeDOM {

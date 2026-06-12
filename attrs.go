@@ -148,9 +148,11 @@ type DOMRef = Ref[any]
 
 type refOpt struct{ r *DOMRef }
 
-func (o refOpt) Apply(n *Node) { n.ref = o.r }
+func (o refOpt) Apply(n *Node) { n.refs = append(n.refs, o.r) }
 
 // BindRef stores the element's platform DOM handle (a js.Value in the
 // browser) in ref.Current after mount, and resets it to nil on unmount.
 // Combine with UseRef: ref := g.UseRef[any](nil); g.Div(g.BindRef(ref)).
+// Multiple BindRefs on one element all bind, so composed components can
+// each keep their own handle.
 func BindRef(r *DOMRef) Option { return refOpt{r} }

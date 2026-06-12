@@ -34,6 +34,15 @@ func TestCN(t *testing.T) {
 		{"shadow merge", []any{"shadow-sm hover:shadow-md shadow-lg"}, "hover:shadow-md shadow-lg"},
 		{"ring width vs color", []any{"ring-1 ring-ring ring-2"}, "ring-ring ring-2"},
 		{"component class override", []any{"bg-primary text-primary-foreground h-9 px-4", "bg-destructive h-8"}, "text-primary-foreground px-4 bg-destructive h-8"},
+		{"size with line-height modifier", []any{"text-sm/6 text-lg"}, "text-lg"},
+		{"size modifier kills leading", []any{"leading-7 text-sm/6"}, "text-sm/6"},
+		{"size modifier is not a color", []any{"text-red-500 text-sm/6"}, "text-red-500 text-sm/6"},
+		{"color opacity modifier", []any{"bg-black/50 bg-primary"}, "bg-primary"},
+		{"col-span distinct from col-start", []any{"col-span-2 col-start-1"}, "col-span-2 col-start-1"},
+		{"col-span merges", []any{"col-span-2 col-span-3"}, "col-span-3"},
+		{"col-auto resets span and start", []any{"col-span-2 col-start-1 col-auto"}, "col-auto"},
+		{"arbitrary property conflicts per property", []any{"[mask-type:luminance] [mask-type:alpha]"}, "[mask-type:alpha]"},
+		{"different arbitrary properties kept", []any{"[mask-type:alpha] [paint-order:stroke]"}, "[mask-type:alpha] [paint-order:stroke]"},
 		{"empty", []any{""}, ""},
 	}
 	for _, c := range cases {

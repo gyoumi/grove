@@ -60,8 +60,9 @@ type PopoverProps struct {
 // Popover anchors a floating panel to its trigger: the panel is positioned
 // with CSS relative to the trigger per Side/Align, a transparent overlay
 // underneath closes it on outside clicks, and Escape closes it from the
-// keyboard. (Viewport collision flipping is roadmap — pick a Side that has
-// room.)
+// keyboard. In the browser the panel measures itself after opening and
+// flips to the opposite side when it would overflow the viewport (the
+// rendered side is exposed as data-side).
 func Popover(p PopoverProps, trigger *g.Node, content ...any) *g.Node {
 	side := p.Side
 	if side == "" {
@@ -77,28 +78,54 @@ func Popover(p PopoverProps, trigger *g.Node, content ...any) *g.Node {
 		}
 	}
 
-	panel := []any{
-		g.Class(style.CN(
-			"absolute z-50 min-w-[8rem] rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none",
-			positionClasses[side][align], p.Class)),
-		g.Role("dialog"),
-		g.TabIndex(-1),
-		g.Data("slot", "popover-content"),
-		g.Data("side", string(side)),
-		g.OnKeyDown(func(e *g.Event) {
-			if e.Key() == "Escape" {
-				close()
-			}
-		}),
-	}
-	panel = append(panel, content...)
-
 	return g.Span(g.Class("relative inline-flex"), g.Data("slot", "popover"),
 		trigger,
 		g.If(p.Open, g.Fragment(
 			g.Div(g.Class("fixed inset-0 z-40"), g.Data("slot", "popover-overlay"),
 				g.OnClick(func(*g.Event) { close() })),
-			g.Div(panel...),
+			g.C(popoverPanel, panelArgs{side: side, align: align, class: p.Class, onClose: close, content: content}),
 		)),
 	)
+}
+
+type panelArgs struct {
+	side    PopoverSide
+	align   PopoverAlign
+	class   string
+	onClose func()
+	content []any
+}
+
+// popoverPanel renders the floating panel; it re-measures on every open
+// (the panel remounts when Open flips) and flips sides on collision.
+func popoverPanel(a panelArgs) *g.Node {
+	measureRef := g.UseRef[any](nil)
+	flipped, setFlipped := g.UseState(PopoverSide(""))
+	g.UseEffect(func() func() {
+		if s, ok := measureFlip(measureRef, a.side); ok {
+			setFlipped(s)
+		}
+		return nil
+	}, []any{})
+
+	side := a.side
+	if flipped != "" {
+		side = flipped
+	}
+	panel := []any{
+		g.Class(style.CN(
+			"absolute z-50 min-w-[8rem] rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none",
+			positionClasses[side][a.align], a.class)),
+		g.Role("dialog"),
+		g.TabIndex(-1),
+		g.Data("slot", "popover-content"),
+		g.Data("side", string(side)),
+		g.BindRef(measureRef),
+		g.OnKeyDown(func(e *g.Event) {
+			if e.Key() == "Escape" {
+				a.onClose()
+			}
+		}),
+	}
+	return g.Div(append(panel, a.content...)...)
 }

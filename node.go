@@ -31,7 +31,7 @@ type Node struct {
 	attrs  map[string]string
 	props  map[string]any
 	events map[string]func(*Event)
-	ref    *DOMRef
+	refs   []*DOMRef
 
 	children []*Node
 

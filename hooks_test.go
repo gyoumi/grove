@@ -210,3 +210,27 @@ func TestBindRef(t *testing.T) {
 		t.Fatalf("ref should expose the DOM handle in effects: %s", r.HTML())
 	}
 }
+
+// Composed components may each bind their own ref to the same element.
+func MultiRefApp() *g.Node {
+	a := g.UseRef[any](nil)
+	b := g.UseRef[any](nil)
+	g.UseEffect(func() func() {
+		if ea, ok := a.Current.(*testdom.Elem); ok {
+			ea.Attrs["data-a"] = "1"
+		}
+		if eb, ok := b.Current.(*testdom.Elem); ok {
+			eb.Attrs["data-b"] = "1"
+		}
+		return nil
+	}, []any{})
+	return g.Div(g.BindRef(a), g.BindRef(b))
+}
+
+func TestMultipleBindRefs(t *testing.T) {
+	r := testdom.Mount(g.C0(MultiRefApp))
+	div := r.Find("div")
+	if div.Attrs["data-a"] != "1" || div.Attrs["data-b"] != "1" {
+		t.Fatalf("both refs should bind: %s", div.HTML())
+	}
+}

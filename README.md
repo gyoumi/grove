@@ -263,7 +263,8 @@ both raw and gzipped sizes. Serve wasm with gzip or brotli enabled.
 
 - React island bridge: mount real React components as leaf nodes inside a
   grove tree
-- Collision-aware popover placement (flip/shift at viewport edges)
+- Popover shift (slide along the axis) and reposition-on-resize, to round
+  out the collision flipping
 - Full tailwind-merge parity in `style.CN`
 - TinyGo build mode for smaller binaries
 - Batched DOM patch protocol to cut wasm↔JS call overhead

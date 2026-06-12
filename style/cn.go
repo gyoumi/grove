@@ -211,6 +211,10 @@ var prefixRules = []prefixRule{
 
 	{prefix: "grid-cols-", group: "grid-cols"}, {prefix: "grid-rows-", group: "grid-rows"},
 	{prefix: "grid-flow-", group: "grid-flow"},
+	{prefix: "col-span-", group: "col-span"}, {prefix: "col-start-", group: "col-start"},
+	{prefix: "col-end-", group: "col-end"},
+	{prefix: "row-span-", group: "row-span"}, {prefix: "row-start-", group: "row-start"},
+	{prefix: "row-end-", group: "row-end"},
 	{prefix: "col-", group: "col"}, {prefix: "row-", group: "row"},
 	{prefix: "auto-cols-", group: "auto-cols"}, {prefix: "auto-rows-", group: "auto-rows"},
 
@@ -290,6 +294,12 @@ func baseGroup(base string) string {
 	if g, ok := exactGroups[s]; ok {
 		return g
 	}
+	// arbitrary properties: [mask-type:luminance] conflicts per property
+	if strings.HasPrefix(s, "[") {
+		if i := strings.IndexByte(s, ':'); i > 1 {
+			return "arb:" + s[1:i]
+		}
+	}
 	for _, rule := range prefixRules {
 		if rest, ok := strings.CutPrefix(s, rule.prefix); ok {
 			if rule.fn != nil {
@@ -299,6 +309,25 @@ func baseGroup(base string) string {
 		}
 	}
 	return "tok:" + s
+}
+
+// preSlash strips a trailing /modifier (text-sm/6, bg-black/50) so value
+// classification sees the stem; slashes inside brackets are preserved.
+func preSlash(s string) string {
+	depth := 0
+	for i, r := range s {
+		switch r {
+		case '[', '(':
+			depth++
+		case ']', ')':
+			depth--
+		case '/':
+			if depth == 0 {
+				return s[:i]
+			}
+		}
+	}
+	return s
 }
 
 // conflicts lists, per group, the more specific groups a class overrides
@@ -341,6 +370,10 @@ var conflicts = map[string][]string{
 
 	"translate": {"translate-x", "translate-y"},
 	"scale":     {"scale-x", "scale-y"},
+
+	// col-auto / row-auto reset the whole grid-column/row shorthand
+	"col": {"col-span", "col-start", "col-end"},
+	"row": {"row-span", "row-start", "row-end"},
 }
 
 var (
@@ -396,7 +429,8 @@ func fontGroup(rest string) string {
 }
 
 func textGroup(rest string) string {
-	if textSizes[rest] {
+	if textSizes[preSlash(rest)] {
+		// the /modifier form (text-sm/6) sets size and line-height at once
 		return "text-size"
 	}
 	if textAlign[rest] {
