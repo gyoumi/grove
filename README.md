@@ -195,9 +195,11 @@ themeable design system on top:
    win), and `style.Variants` for components whose look is picked by named
    variants.
 4. **Components** — the `ui` package: Button, Badge, Card, Input, Label,
-   Checkbox, Separator, Alert, Avatar, Switch, Tooltip, and a modal Dialog
-   (Escape/overlay dismissal, focus trapping). All of it is plain Tailwind
-   on the theme variables:
+   Checkbox, Separator, Alert, Avatar, Switch, Tooltip, a modal Dialog
+   (Escape/overlay dismissal, focus trapping), and anchored Popover +
+   Dropdown menus (side/align placement, outside-click and Escape
+   dismissal, arrow-key focus). All of it is plain Tailwind on the theme
+   variables:
 
 ```go
 ui.Card(
@@ -261,7 +263,7 @@ both raw and gzipped sizes. Serve wasm with gzip or brotli enabled.
 
 - React island bridge: mount real React components as leaf nodes inside a
   grove tree
-- Anchored-positioning primitives (Popover, Dropdown, Tooltip)
+- Collision-aware popover placement (flip/shift at viewport edges)
 - Full tailwind-merge parity in `style.CN`
 - TinyGo build mode for smaller binaries
 - Batched DOM patch protocol to cut wasm↔JS call overhead

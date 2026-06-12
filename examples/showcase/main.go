@@ -12,6 +12,8 @@ import (
 func App() *g.Node {
 	dark, setDark := g.UseState(false)
 	open, setOpen := g.UseState(false)
+	menuOpen, setMenuOpen := g.UseState(false)
+	lastAction, setLastAction := g.UseState("none")
 	name, setName := g.UseState("")
 	agreed, setAgreed := g.UseState(false)
 
@@ -84,6 +86,20 @@ func App() *g.Node {
 					),
 					ui.Button(ui.ButtonProps{Disabled: !agreed, OnClick: func(*g.Event) { setOpen(true) }}, "Sign up"),
 				),
+			),
+		),
+
+		section("Dropdown menu",
+			g.Div(g.Class("flex items-center gap-4"),
+				ui.Dropdown(ui.DropdownProps{Open: menuOpen, OnClose: func() { setMenuOpen(false) }},
+					ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline, OnClick: func(*g.Event) { setMenuOpen(!menuOpen) }}, "Actions"),
+					ui.DropdownLabel("Demo actions"),
+					ui.DropdownItem(ui.DropdownItemProps{OnSelect: func() { setLastAction("duplicate") }}, "Duplicate"),
+					ui.DropdownItem(ui.DropdownItemProps{OnSelect: func() { setLastAction("archive") }}, "Archive"),
+					ui.DropdownSeparator(),
+					ui.DropdownItem(ui.DropdownItemProps{OnSelect: func() { setLastAction("delete") }, Class: "text-destructive"}, "Delete"),
+				),
+				g.P(g.Class("text-sm text-muted-foreground"), g.Textf("last action: %s", lastAction)),
 			),
 		),
 
