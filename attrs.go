@@ -67,6 +67,23 @@ func ClassIf(cond bool, classes ...string) Option {
 	return Class(classes...)
 }
 
+// AttrIf sets the attribute only when cond is true.
+func AttrIf(cond bool, name, value string) Option {
+	if !cond {
+		return noOpt{}
+	}
+	return attrOpt{name, value}
+}
+
+// OptIf applies the option only when cond is true — the Option counterpart
+// of If for conditional children.
+func OptIf(cond bool, o Option) Option {
+	if !cond {
+		return noOpt{}
+	}
+	return o
+}
+
 // Key sets the reconciliation key used to match this element across renders
 // in dynamic lists.
 func Key(key string) Option { return keyOpt(key) }

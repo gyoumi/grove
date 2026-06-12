@@ -238,14 +238,23 @@ func (r *R) FindByAttr(name, value string) *Elem {
 	return r.Container.find(func(e *Elem) bool { return e.Attrs[name] == value })
 }
 
-// FindText returns the first element whose direct text content contains s.
+// FindText returns the deepest element whose text content contains s — the
+// element you'd click on, not the page wrapper that also happens to contain
+// the text. Ties go to the earliest match in document order.
 func (r *R) FindText(s string) *Elem {
-	return r.Container.find(func(e *Elem) bool {
-		if e.Tag == "" {
-			return false
+	var deepest func(e *Elem) *Elem
+	deepest = func(e *Elem) *Elem {
+		for _, c := range e.Children {
+			if m := deepest(c); m != nil {
+				return m
+			}
 		}
-		return strings.Contains(e.TextContent(), s)
-	})
+		if e.Tag != "" && e != r.Container && strings.Contains(e.TextContent(), s) {
+			return e
+		}
+		return nil
+	}
+	return deepest(r.Container)
 }
 
 func (e *Elem) find(pred func(*Elem) bool) *Elem {
