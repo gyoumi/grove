@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -11,11 +12,11 @@ import (
 func runInit(args []string) error {
 	fs := flag.NewFlagSet("init", flag.ExitOnError)
 	grovePath := fs.String("grove", "", "path to a local grove checkout (adds a replace directive)")
-	fs.Parse(args)
-	if fs.NArg() != 1 {
+	pos := parseMixed(fs, args)
+	if len(pos) != 1 {
 		return fmt.Errorf("usage: grove init <app-name> [--grove <path>]")
 	}
-	name := fs.Arg(0)
+	name := pos[0]
 	if _, err := os.Stat(name); err == nil {
 		return fmt.Errorf("directory %s already exists", name)
 	}
@@ -43,6 +44,16 @@ func runInit(args []string) error {
 		}
 		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 			return err
+		}
+	}
+
+	// Resolve the module graph now so grove serve works immediately.
+	tidy := exec.Command("go", "mod", "tidy")
+	tidy.Dir = name
+	if out, err := tidy.CombinedOutput(); err != nil {
+		fmt.Fprintf(os.Stderr, "grove: go mod tidy failed:\n%s\n", strings.TrimSpace(string(out)))
+		if *grovePath == "" {
+			fmt.Fprintln(os.Stderr, "grove: run `go get github.com/gyoumi/grove@latest` inside the app, then `go mod tidy`")
 		}
 	}
 

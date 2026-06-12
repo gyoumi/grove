@@ -1,0 +1,251 @@
+# grove
+
+A React-style UI framework for Go, compiled to WebAssembly. Function
+components render a virtual DOM, hooks hold state, and a reconciler diffs
+each render and applies minimal DOM updates — the React mental model, in Go.
+
+```go
+package main
+
+import (
+	g "github.com/gyoumi/grove"
+	"github.com/gyoumi/grove/dom"
+)
+
+func Counter() *g.Node {
+	count, setCount := g.UseState(0)
+	return g.Button(
+		g.Class("rounded-md bg-primary px-4 py-2 text-primary-foreground"),
+		g.OnClick(func(*g.Event) { setCount(count + 1) }),
+		g.Textf("count is %d", count),
+	)
+}
+
+func main() {
+	dom.Mount("#root", g.C0(Counter))
+}
+```
+
+grove is **client-side only by design**: it renders in the browser, full
+stop. There is no server rendering or hydration, and none is planned —
+that keeps the engine small and the model simple.
+
+## Quickstart
+
+```sh
+go install github.com/gyoumi/grove/cmd/grove@latest
+
+grove init myapp
+cd myapp
+grove serve        # http://localhost:8080, rebuilds and reloads on save
+```
+
+`grove init` scaffolds a working app with Tailwind CSS v4 and the shadcn
+theme preconfigured. No Node toolchain is involved: the CLI uses the
+Tailwind standalone binary (downloaded once, cached) and plain `go build`
+with `GOOS=js GOARCH=wasm`.
+
+## Components
+
+A component is a function returning `*g.Node`. Wrap it with `g.C0` (no
+props) or `g.C` (typed props) to place it in the tree:
+
+```go
+type GreetingProps struct{ Name string }
+
+func Greeting(p GreetingProps) *g.Node {
+	return g.P("hello, ", g.Strong(p.Name))
+}
+
+func App() *g.Node {
+	return g.Div(
+		g.C(Greeting, GreetingProps{Name: "Ada"}),
+	)
+}
+```
+
+Element constructors (`Div`, `Span`, `Button`, `Input`, …) accept any mix
+of:
+
+- **options** — attributes, properties, and handlers: `g.Class(…)`,
+  `g.ID(…)`, `g.Value(…)`, `g.OnClick(…)`, or the generic `g.Attr`/`g.Prop`/`g.On`
+- **children** — `*g.Node` values, plain strings (become text nodes), and
+  `[]*g.Node` slices
+- **nil** — skipped, which makes inline conditionals pleasant
+
+`g.Fragment(…)` groups children without a wrapper element, like `<>…</>`.
+
+### Conditionals and lists
+
+```go
+g.Div(
+	g.If(loggedIn, g.Span("welcome back")),         // nil when false
+	g.IfElse(busy, Spinner(), Content()),
+	g.Ul(g.Map(todos, func(t Todo) *g.Node {
+		return g.Li(g.Key(t.ID), t.Title)             // keys make reorders cheap
+	})),
+)
+```
+
+Give list children keys — `g.Key(…)` for elements, `.WithKey(…)` for
+component nodes — so the reconciler can move DOM nodes instead of
+rebuilding them.
+
+## Hooks
+
+The built-in hooks mirror React's, including the rules of hooks: call them
+unconditionally, in the same order, on every render (grove panics with a
+clear message if a component breaks this).
+
+| hook | use |
+| --- | --- |
+| `UseState(initial)` | state + setter; equal values are a no-op |
+| `UseStateLazy(func() T)` | state with a computed initial value |
+| `UseReducer(reducer, initial)` | updates that derive from the latest state |
+| `UseEffect(setup, deps)` | run after commit; setup may return a cleanup |
+| `UseMemo(compute, deps)` | cache a computation |
+| `UseCallback(fn, deps)` | cache a function value |
+| `UseRef(initial)` | mutable box that survives renders |
+| `UseContext(ctx)` | read the nearest `ctx.Provider` value |
+
+`deps` works exactly like React's dependency array:
+
+```go
+g.UseEffect(fn, nil)          // after every render
+g.UseEffect(fn, []any{})      // once, on mount
+g.UseEffect(fn, []any{a, b})  // when a or b changes (shallow ==)
+```
+
+State updates are batched: every setter called in one event handler (or
+one effect pass) produces a single re-render. Like React, `UseState`
+values are snapshots of the render they came from — use `UseReducer` when
+an update must read the latest state.
+
+Context flows down the tree without prop drilling:
+
+```go
+var Theme = g.NewContext("light")
+
+// provide
+Theme.Provider(theme, g.C0(Page))
+
+// consume, anywhere below
+theme := g.UseContext(Theme)
+```
+
+## Events
+
+Handlers receive `*g.Event` with typed accessors — `Value()`, `Checked()`,
+`Key()` — plus `PreventDefault`, `StopPropagation`, and path-based access
+(`e.Num("clientX")`) to anything else on the platform event. Under the
+hood grove attaches **one** delegated listener per event type and bubbles
+events through the virtual tree, so handlers cost nothing per element.
+
+Controlled inputs work like React's:
+
+```go
+text, setText := g.UseState("")
+g.Input(g.Value(text), g.OnInput(func(e *g.Event) { setText(e.Value()) }))
+```
+
+The `value`/`checked` properties are re-synced on every render, so the DOM
+can't drift from your state.
+
+## Styling and shadcn compatibility
+
+grove treats Tailwind class strings as the styling primitive, and ships
+shadcn's design system:
+
+1. **Theme** — `grove init` writes shadcn's CSS-variable theme
+   (`--background`, `--primary`, `--radius`, … with a `.dark` variant), so
+   classes like `bg-primary text-primary-foreground` work out of the box.
+   Toggle dark mode with `dom.SetRootClass("dark", on)`.
+2. **Class scanning** — the generated `styles/input.css` tells Tailwind to
+   scan `**/*.go`, so utilities used in Go string literals are compiled in.
+3. **`style.CN`** — clsx-style composition plus Tailwind conflict
+   resolution (`CN("p-4 bg-muted", userClass)` lets the caller's classes
+   win), and `style.Variants` mirrors class-variance-authority for
+   variant-driven components.
+4. **Ported components** — the `ui` package ports shadcn/ui components to
+   Go: Button, Badge, Card, Input, Label, Checkbox, Separator, Alert, and
+   a modal Dialog (Escape/overlay dismissal, focus trapping). Same class
+   recipes, same composition style:
+
+```go
+ui.Card(
+	ui.CardHeader(ui.CardTitle("Create account")),
+	ui.CardContent(
+		ui.Input(ui.InputProps{Value: name, OnInput: onName}),
+	),
+	ui.CardFooter(
+		ui.Button(ui.ButtonProps{Variant: ui.ButtonDestructive}, "Delete"),
+	),
+)
+```
+
+Like shadcn, components are meant to be **owned, not imported**:
+
+```sh
+grove add button card dialog    # copies the source into ./ui/, edit freely
+```
+
+(Importing `github.com/gyoumi/grove/ui` directly also works — add an extra
+`@source` line for grove's module path to your CSS so Tailwind sees those
+class strings.)
+
+## CLI
+
+| command | what it does |
+| --- | --- |
+| `grove init <app>` | scaffold an app (Tailwind + shadcn theme, no Node) |
+| `grove serve` | dev server: rebuild on save, SSE live reload |
+| `grove build` | release build: `-s -w`, minified CSS, optional `wasm-opt`, size report |
+| `grove add <component>` | copy a ui component's source into your app |
+
+## Testing
+
+The engine never touches `syscall/js` directly — it renders through a
+small `Renderer` interface. `testdom` implements it in memory, so
+components are testable with plain `go test`, no browser:
+
+```go
+func TestCounter(t *testing.T) {
+	r := testdom.Mount(g.C0(Counter))
+	r.Click(r.Find("button"))
+	if got := r.HTML(); got != "<button>count is 1</button>" {
+		t.Fatalf("got %s", got)
+	}
+}
+```
+
+`testdom` can fire events (`Click`, `Input`, `KeyDown`, `SetChecked`),
+query the fake DOM (`Find`, `FindByAttr`, `FindText`), and snapshot it as
+HTML.
+
+## Bundle size
+
+A hello-world app is ~2.6 MB of wasm (~700 KB gzipped) — that's the cost
+of shipping the Go runtime, and it's a flat cost, not per-component.
+`grove build` strips symbols, runs `wasm-opt` when available, and prints
+both raw and gzipped sizes. Serve wasm with gzip or brotli enabled.
+
+## Roadmap
+
+- React island bridge: mount real React components (e.g. unported shadcn
+  pieces) as leaf nodes inside a grove tree
+- `Memo` for render skipping
+- Client-side router
+- Anchored-positioning primitives (Popover, Dropdown, Tooltip)
+- Full tailwind-merge parity in `style.CN`
+- TinyGo build mode for smaller binaries
+- Batched DOM patch protocol to cut wasm↔JS call overhead
+
+Not on the roadmap: server-side rendering and hydration — grove stays a
+client-side framework.
+
+## Examples
+
+[`examples/`](examples/) contains three runnable apps — `counter`
+(smallest possible), `todo` (state, lists, keys), and `showcase` (every ui
+component, dark mode, dialog). Run any of them with `grove serve` from its
+directory.

@@ -7,9 +7,25 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 )
+
+// parseMixed parses flags and positional arguments in any order (the flag
+// package alone stops at the first positional), returning the positionals.
+func parseMixed(fs *flag.FlagSet, args []string) []string {
+	var pos []string
+	for {
+		fs.Parse(args)
+		args = fs.Args()
+		if len(args) == 0 {
+			return pos
+		}
+		pos = append(pos, args[0])
+		args = args[1:]
+	}
+}
 
 const usage = `grove — a React-style framework for Go and WebAssembly
 

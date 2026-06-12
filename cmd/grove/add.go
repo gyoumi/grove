@@ -44,13 +44,13 @@ func runAdd(args []string) error {
 	list := fs.Bool("list", false, "list available components")
 	dir := fs.String("dir", ".", "app directory")
 	force := fs.Bool("force", false, "overwrite existing files")
-	fs.Parse(args)
+	names := parseMixed(fs, args)
 
 	if *list {
 		fmt.Println(strings.Join(componentNames(), "\n"))
 		return nil
 	}
-	if fs.NArg() == 0 {
+	if len(names) == 0 {
 		return fmt.Errorf("usage: grove add <component> — available: %s", strings.Join(componentNames(), ", "))
 	}
 
@@ -59,7 +59,7 @@ func runAdd(args []string) error {
 		return err
 	}
 
-	for _, name := range fs.Args() {
+	for _, name := range names {
 		files, ok := components[strings.ToLower(name)]
 		if !ok {
 			return fmt.Errorf("unknown component %q — available: %s", name, strings.Join(componentNames(), ", "))
