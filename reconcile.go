@@ -155,10 +155,25 @@ func (a *App) patch(old, new *Node, parent *Node, pinst *instance, parentDOM, an
 		inst := old.inst
 		new.inst = inst
 		inst.node = new
+		if new.memo && !inst.dirty && memoEqual(old, new) {
+			// Skip the render: adopt the old subtree unchanged.
+			new.rendered = old.rendered
+			if new.rendered != nil {
+				new.rendered.parent = new
+			}
+			break
+		}
 		rendered := inst.render()
 		new.rendered = a.patch(old.rendered, rendered, new, inst, parentDOM, anchor)
 	}
 	return new
+}
+
+func memoEqual(old, new *Node) bool {
+	if new.eq != nil {
+		return new.eq(old.fnProps, new.fnProps)
+	}
+	return cheapEqual(old.fnProps, new.fnProps)
 }
 
 func (a *App) patchElement(old, new *Node) {

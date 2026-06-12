@@ -16,8 +16,10 @@ type instance struct {
 	unmounted bool
 
 	// context provider data (set every render by Context.Provider)
-	ctxKey *ctxKey
-	ctxVal any
+	ctxKey    *ctxKey
+	ctxVal    any
+	hasCtx    bool
+	consumers map[*instance]struct{} // instances reading this provider
 }
 
 func newInstance(a *App, n *Node, parent *instance) *instance {
@@ -66,12 +68,18 @@ func (inst *instance) markDirty() {
 	inst.app.enqueue(inst)
 }
 
-// runCleanups runs effect cleanups in hook order; used on unmount.
+// runCleanups runs effect cleanups in hook order and releases context
+// subscriptions; used on unmount.
 func (inst *instance) runCleanups() {
 	for _, h := range inst.hooks {
-		if ec, ok := h.(*effectCell); ok && ec.cleanup != nil {
-			ec.cleanup()
-			ec.cleanup = nil
+		switch cell := h.(type) {
+		case *effectCell:
+			if cell.cleanup != nil {
+				cell.cleanup()
+				cell.cleanup = nil
+			}
+		case *ctxCell:
+			cell.release()
 		}
 	}
 }

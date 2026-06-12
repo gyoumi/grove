@@ -91,6 +91,33 @@ Give list children keys — `g.Key(…)` for elements, `.WithKey(…)` for
 component nodes — so the reconciler can move DOM nodes instead of
 rebuilding them.
 
+### Skipping renders with Memo
+
+`g.Memo(g.C(Row, props))` skips the component's re-render when its props
+are unchanged (`==`); state updates inside it and context changes above it
+still apply. For props containing slices or callbacks, `g.MemoEq` takes a
+custom comparison over the fields that matter. A skipped component keeps
+the handlers from its last render, so handlers inside a Memo subtree
+should read changing data through a `UseRef`.
+
+## Routing
+
+`grove/router` is a small hash router (`#/event/42` — shareable links and
+back/forward with no server config; in tests the path lives in memory):
+
+```go
+router.Routes(
+	router.Route{Pattern: "/", Render: home},
+	router.Route{Pattern: "/event/:id", Render: func(p router.Params) *g.Node {
+		return g.C(EventPage, p["id"])
+	}},
+	router.Route{Pattern: "*", Render: notFound},
+)
+
+router.Link("/event/42", "open")   // anchor that navigates client-side
+router.Navigate("/")               // programmatic navigation
+```
+
 ## Hooks
 
 The built-in hooks mirror React's, including the rules of hooks: call them
@@ -233,8 +260,6 @@ both raw and gzipped sizes. Serve wasm with gzip or brotli enabled.
 
 - React island bridge: mount real React components (e.g. unported shadcn
   pieces) as leaf nodes inside a grove tree
-- `Memo` for render skipping
-- Client-side router
 - Anchored-positioning primitives (Popover, Dropdown, Tooltip)
 - Full tailwind-merge parity in `style.CN`
 - TinyGo build mode for smaller binaries

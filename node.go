@@ -36,9 +36,12 @@ type Node struct {
 	children []*Node
 
 	// component nodes
-	fn    func() *Node
-	fnID  uintptr // identity of the component function for reconciliation
-	fnKey any     // extra identity (used by context providers)
+	fn      func() *Node
+	fnID    uintptr // identity of the component function for reconciliation
+	fnKey   any     // extra identity (used by context providers)
+	fnProps any     // last props value, for Memo comparison
+	memo    bool
+	eq      func(old, new any) bool // custom Memo comparison (nil = ==)
 
 	// runtime fields, populated when mounted
 	id       int
@@ -127,10 +130,44 @@ func C0(fn func() *Node) *Node {
 // whatever was passed on that render.
 func C[P any](fn func(P) *Node, props P) *Node {
 	return &Node{
-		kind: kindComponent,
-		fn:   func() *Node { return fn(props) },
-		fnID: fnPtr(fn),
+		kind:    kindComponent,
+		fn:      func() *Node { return fn(props) },
+		fnID:    fnPtr(fn),
+		fnProps: props,
 	}
+}
+
+// Memo marks a component node to skip re-rendering when its props are
+// unchanged (compared with ==; incomparable props such as funcs, slices,
+// and maps never compare equal, so they defeat Memo — see MemoEq). State
+// updates inside the component and context changes above it still apply.
+//
+//	g.Memo(g.C(Row, props))
+//	g.Memo(g.C0(StaticHeader))   // never re-renders from the parent
+//
+// A skipped component keeps the event handlers from its last render, so
+// handlers inside a Memo subtree should read changing data through a
+// UseRef rather than closing over it.
+func Memo(n *Node) *Node {
+	if n.kind != kindComponent {
+		panic("grove: Memo wraps component nodes (g.C/g.C0), not elements")
+	}
+	n.memo = true
+	return n
+}
+
+// MemoEq is Memo with a custom props comparison, for props that contain
+// slices or callbacks: compare the data that affects rendering and ignore
+// the rest.
+func MemoEq[P any](fn func(P) *Node, props P, eq func(old, new P) bool) *Node {
+	n := C(fn, props)
+	n.memo = true
+	n.eq = func(a, b any) bool {
+		ao, ok1 := a.(P)
+		bo, ok2 := b.(P)
+		return ok1 && ok2 && eq(ao, bo)
+	}
+	return n
 }
 
 func fnPtr(fn any) uintptr {
