@@ -20,6 +20,8 @@ func App() *g.Node {
 	agreed, setAgreed := g.UseState(false)
 	rangeStart, setRangeStart := g.UseState[*ui.Date](nil)
 	rangeEnd, setRangeEnd := g.UseState[*ui.Date](nil)
+	pickedDate, setPickedDate := g.UseState[*ui.Date](nil)
+	pickedTime, setPickedTime := g.UseState[*ui.Time](nil)
 
 	g.UseEffect(func() func() {
 		dom.SetRootClass("dark", dark)
@@ -129,6 +131,25 @@ func App() *g.Node {
 					OnRange: func(s, e ui.Date) { ss, ee := s, e; setRangeStart(&ss); setRangeEnd(&ee) },
 				}),
 				g.P(g.Class("text-sm text-muted-foreground"), rangeSummary(rangeStart, rangeEnd)),
+			),
+		),
+
+		section("Date & time pickers",
+			g.Div(g.Class("flex flex-wrap items-end gap-4"),
+				g.Div(g.Class("flex w-60 flex-col gap-1.5"),
+					ui.Label("", "Date"),
+					ui.DatePicker(ui.DatePickerProps{
+						Value:    pickedDate,
+						OnChange: func(d ui.Date) { dd := d; setPickedDate(&dd) },
+					}),
+				),
+				g.Div(g.Class("flex w-32 flex-col gap-1.5"),
+					ui.Label("", "Time"),
+					ui.TimePicker(ui.TimePickerProps{
+						Value:    pickedTime,
+						OnChange: func(tm ui.Time) { t2 := tm; setPickedTime(&t2) },
+					}),
+				),
 			),
 		),
 

@@ -57,6 +57,10 @@ type PopoverProps struct {
 	Side    PopoverSide  // default bottom
 	Align   PopoverAlign // default center
 	Class   string       // extra classes for the panel
+	// WrapperClass overrides the anchoring wrapper's classes (default
+	// "relative inline-flex"); pass "relative block w-full" to let the
+	// trigger fill its container, as the field pickers do.
+	WrapperClass string
 }
 
 // Popover anchors a floating panel to its trigger: the panel is positioned
@@ -82,7 +86,7 @@ func Popover(p PopoverProps, trigger *g.Node, content ...any) *g.Node {
 		}
 	}
 
-	return g.Span(g.Class("relative inline-flex"), g.Data("slot", "popover"),
+	return g.Span(g.Class(style.CN("relative inline-flex", p.WrapperClass)), g.Data("slot", "popover"),
 		trigger,
 		g.If(p.Open, g.Fragment(
 			g.Div(g.Class("fixed inset-0 z-40"), g.Data("slot", "popover-overlay"),
