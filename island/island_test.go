@@ -1,3 +1,9 @@
+// The island lifecycle test drives the off-browser stub host (SetHost),
+// which only exists outside js/wasm; go test runs on the host, so the
+// build tag keeps `GOOS=js GOARCH=wasm go vet` from compiling a file that
+// references a symbol absent on that platform.
+//go:build !(js && wasm)
+
 package island_test
 
 import (
