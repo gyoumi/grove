@@ -33,6 +33,10 @@ func TestPopoverOpenCloseAndPosition(t *testing.T) {
 	if !strings.Contains(cls, "bottom-full") || !strings.Contains(cls, "right-0") {
 		t.Fatalf("side=top align=end classes missing: %s", cls)
 	}
+	if content.Attrs["data-side"] != "top" || content.Attrs["style"] != "" {
+		t.Fatalf("without a browser the requested placement must be untouched: side=%s style=%q",
+			content.Attrs["data-side"], content.Attrs["style"])
+	}
 
 	r.KeyDown(content, "Escape")
 	if r.FindByAttr("data-slot", "popover-content") != nil {

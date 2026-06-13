@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+
 	g "github.com/gyoumi/grove"
 	"github.com/gyoumi/grove/style"
 )
@@ -61,8 +63,10 @@ type PopoverProps struct {
 // with CSS relative to the trigger per Side/Align, a transparent overlay
 // underneath closes it on outside clicks, and Escape closes it from the
 // keyboard. In the browser the panel measures itself after opening and
-// flips to the opposite side when it would overflow the viewport (the
-// rendered side is exposed as data-side).
+// corrects viewport collisions: it flips to the opposite side when that
+// side has room (the rendered side is exposed as data-side), shifts along
+// the cross axis until it fits, and re-measures when the window resizes
+// while open.
 func Popover(p PopoverProps, trigger *g.Node, content ...any) *g.Node {
 	side := p.Side
 	if side == "" {
@@ -97,20 +101,41 @@ type panelArgs struct {
 }
 
 // popoverPanel renders the floating panel; it re-measures on every open
-// (the panel remounts when Open flips) and flips sides on collision.
+// (the panel remounts when Open flips), after each side change, and on
+// window resize. Collision handling is flip first, then shift: move to the
+// opposite side when the placement overflows and that side has room, then
+// slide along the cross axis until the panel fits the viewport.
 func popoverPanel(a panelArgs) *g.Node {
 	measureRef := g.UseRef[any](nil)
 	flipped, setFlipped := g.UseState(PopoverSide(""))
-	g.UseEffect(func() func() {
-		if s, ok := measureFlip(measureRef, a.side); ok {
-			setFlipped(s)
-		}
-		return nil
-	}, []any{})
+	shift, setShift := g.UseState(0)
+	resizes, bump := g.UseReducer(func(n int, _ struct{}) int { return n + 1 }, 0)
 
 	side := a.side
 	if flipped != "" {
 		side = flipped
+	}
+
+	g.UseEffect(func() func() {
+		return onViewportResize(func() {
+			setFlipped("") // re-evaluate from the requested side
+			bump(struct{}{})
+		})
+	}, []any{})
+	g.UseEffect(func() func() {
+		if s, ok := measureFlip(measureRef, side); ok {
+			setFlipped(s)
+			return nil // shift is measured once the new side is committed
+		}
+		if px, ok := measureShift(measureRef, side, shift); ok {
+			setShift(px)
+		}
+		return nil
+	}, []any{side, resizes})
+
+	axis := "X"
+	if side == PopoverLeft || side == PopoverRight {
+		axis = "Y"
 	}
 	panel := []any{
 		g.Class(style.CN(
@@ -120,6 +145,10 @@ func popoverPanel(a panelArgs) *g.Node {
 		g.TabIndex(-1),
 		g.Data("slot", "popover-content"),
 		g.Data("side", string(side)),
+		// The inline transform composes with the translate utilities in
+		// positionClasses (CSS translate and transform are distinct
+		// properties), so centered panels shift correctly too.
+		g.AttrIf(shift != 0, "style", fmt.Sprintf("transform: translate%s(%dpx)", axis, shift)),
 		g.BindRef(measureRef),
 		g.OnKeyDown(func(e *g.Event) {
 			if e.Key() == "Escape" {

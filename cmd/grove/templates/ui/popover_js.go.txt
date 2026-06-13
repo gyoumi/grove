@@ -3,6 +3,7 @@
 package ui
 
 import (
+	"math"
 	"syscall/js"
 
 	g "github.com/gyoumi/grove"
@@ -47,4 +48,50 @@ func measureFlip(ref *g.DOMRef, side PopoverSide) (PopoverSide, bool) {
 		}
 	}
 	return "", false
+}
+
+// measureShift returns the cross-axis offset (px, applied as an inline
+// transform) that keeps the panel inside the viewport. The overflow is
+// computed from the panel's un-shifted position, so the offset relaxes
+// back toward zero when the viewport grows; ok is false when the current
+// offset is already right.
+func measureShift(ref *g.DOMRef, side PopoverSide, current int) (int, bool) {
+	el, ok := ref.Current.(js.Value)
+	if !ok || el.Type() != js.TypeObject {
+		return 0, false
+	}
+	rect := el.Call("getBoundingClientRect")
+	const pad = 4 // breathing room against the viewport edge
+	var lo, hi, limit float64
+	if side == PopoverLeft || side == PopoverRight {
+		lo = rect.Get("top").Float() - float64(current)
+		hi = rect.Get("bottom").Float() - float64(current)
+		limit = js.Global().Get("innerHeight").Float()
+	} else {
+		lo = rect.Get("left").Float() - float64(current)
+		hi = rect.Get("right").Float() - float64(current)
+		limit = js.Global().Get("innerWidth").Float()
+	}
+	var delta float64
+	if hi > limit-pad {
+		delta = (limit - pad) - hi
+	}
+	if lo+delta < pad {
+		delta = pad - lo // when the panel fits neither way, keep the start edge visible
+	}
+	if n := int(math.Round(delta)); n != current {
+		return n, true
+	}
+	return current, false
+}
+
+// onViewportResize runs fn on window resize and returns a cleanup that
+// detaches the listener.
+func onViewportResize(fn func()) func() {
+	cb := js.FuncOf(func(js.Value, []js.Value) any { fn(); return nil })
+	js.Global().Call("addEventListener", "resize", cb)
+	return func() {
+		js.Global().Call("removeEventListener", "resize", cb)
+		cb.Release()
+	}
 }

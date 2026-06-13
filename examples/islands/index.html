@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>grove islands</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="/wasm_exec.js"></script>
+    <script type="module">
+      // Register islands before the wasm starts so they exist by the time
+      // grove mounts them.
+      import React from "https://esm.sh/react@18";
+      import { createRoot } from "https://esm.sh/react-dom@18/client";
+
+      const e = React.createElement;
+
+      function Greeting({ count }) {
+        const [clicks, setClicks] = React.useState(0);
+        return e(
+          "div",
+          { className: "space-y-2" },
+          e("p", { className: "font-medium" }, `React sees count = ${count}`),
+          e(
+            "button",
+            {
+              className:
+                "rounded-md border px-3 py-1.5 text-sm hover:bg-accent",
+              onClick: () => setClicks(clicks + 1),
+            },
+            `React-side clicks: ${clicks}`,
+          ),
+        );
+      }
+
+      window.groveIslands = {
+        Greeting: {
+          mount(el, props) {
+            el._root = createRoot(el);
+            el._root.render(e(Greeting, props));
+          },
+          update(el, props) {
+            el._root.render(e(Greeting, props));
+          },
+          unmount(el) {
+            el._root.unmount();
+          },
+        },
+      };
+
+      const go = new Go();
+      WebAssembly.instantiateStreaming(fetch("/app.wasm"), go.importObject).then(
+        (result) => go.run(result.instance),
+      );
+    </script>
+  </body>
+</html>

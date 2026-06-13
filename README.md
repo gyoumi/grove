@@ -198,8 +198,9 @@ themeable design system on top:
    Checkbox, Separator, Alert, Avatar, Switch, Tooltip, a modal Dialog
    (Escape/overlay dismissal, focus trapping), and anchored Popover +
    Dropdown menus (side/align placement, outside-click and Escape
-   dismissal, arrow-key focus). All of it is plain Tailwind on the theme
-   variables:
+   dismissal, arrow-key focus, and viewport collision handling — panels
+   flip to the other side, shift until they fit, and re-measure on window
+   resize). All of it is plain Tailwind on the theme variables:
 
 ```go
 ui.Card(
@@ -222,6 +223,36 @@ grove add button card dialog    # copies the source into ./ui/, edit freely
 (Importing `github.com/gyoumi/grove/ui` directly also works — add an extra
 `@source` line for grove's module path to your CSS so Tailwind sees those
 class strings.)
+
+## React islands
+
+A grove app can hand individual leaf nodes to React (or any JS renderer)
+with the `island` package. The page registers islands on
+`window.groveIslands` before the wasm starts:
+
+```js
+import { createRoot } from "https://esm.sh/react-dom@18/client";
+
+window.groveIslands = {
+  Greeting: {
+    mount(el, props)  { el._root = createRoot(el); el._root.render(e(Greeting, props)) },
+    update(el, props) { el._root.render(e(Greeting, props)) }, // optional
+    unmount(el)       { el._root.unmount() },                  // optional
+  },
+};
+```
+
+and grove places them like any other node, re-delivering props (as JSON)
+whenever they change:
+
+```go
+island.C("Greeting", map[string]any{"count": count}, g.Class("rounded-lg border p-4"))
+```
+
+The JS side owns everything inside the container element — islands are
+leaves, with no grove children. Outside the browser the lifecycle is
+observable in tests via `island.SetHost`. A runnable app lives in
+[`examples/islands`](examples/islands).
 
 ## CLI
 
@@ -261,10 +292,6 @@ both raw and gzipped sizes. Serve wasm with gzip or brotli enabled.
 
 ## Roadmap
 
-- React island bridge: mount real React components as leaf nodes inside a
-  grove tree
-- Popover shift (slide along the axis) and reposition-on-resize, to round
-  out the collision flipping
 - Full tailwind-merge parity in `style.CN`
 - TinyGo build mode for smaller binaries
 - Batched DOM patch protocol to cut wasm↔JS call overhead
@@ -274,7 +301,7 @@ client-side framework.
 
 ## Examples
 
-[`examples/`](examples/) contains three runnable apps — `counter`
-(smallest possible), `todo` (state, lists, keys), and `showcase` (every ui
-component, dark mode, dialog). Run any of them with `grove serve` from its
-directory.
+[`examples/`](examples/) contains four runnable apps — `counter` (smallest
+possible), `todo` (state, lists, keys), `showcase` (every ui component,
+dark mode, dialog), and `islands` (a React component living inside a grove
+app). Run any of them with `grove serve` from its directory.
