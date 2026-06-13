@@ -89,7 +89,8 @@ g.Div(
 
 Give list children keys — `g.Key(…)` for elements, `.WithKey(…)` for
 component nodes — so the reconciler can move DOM nodes instead of
-rebuilding them.
+rebuilding them. Reorders move the minimum number of nodes: the longest
+run already in order stays put, and only the rest are repositioned.
 
 ### Skipping renders with Memo
 
@@ -312,7 +313,6 @@ toolchain stays the default.
 ## Roadmap
 
 - Batched DOM patch protocol to cut wasm↔JS call overhead
-- Longest-increasing-subsequence move optimization for keyed lists
 
 Not on the roadmap: server-side rendering and hydration — grove stays a
 client-side framework.

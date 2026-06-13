@@ -145,6 +145,118 @@ func TestKeyedReorderPreservesIdentity(t *testing.T) {
 	}
 }
 
+var applyOrder func([]string)
+
+func reorderProbe() *g.Node {
+	order, set := g.UseState([]string{"a", "b", "c", "d", "e"})
+	applyOrder = set
+	return g.Ul(g.Map(order, func(s string) *g.Node {
+		return g.Li(g.Key(s), s)
+	}))
+}
+
+func liOrder(r *testdom.R) []string {
+	var out []string
+	for _, li := range r.FindAll("li") {
+		out = append(out, li.Children[0].Text)
+	}
+	return out
+}
+
+func sameStrs(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// minimalMoves is the fewest DOM moves a keyed reorder needs — the count
+// outside the longest increasing subsequence — computed here with a plain
+// O(n^2) LIS so the test doesn't lean on the reconciler's own routine.
+func minimalMoves(oldOrder, newOrder []string) int {
+	pos := map[string]int{}
+	for i, s := range oldOrder {
+		pos[s] = i
+	}
+	seq := make([]int, len(newOrder))
+	for i, s := range newOrder {
+		seq[i] = pos[s]
+	}
+	best := 0
+	dp := make([]int, len(seq))
+	for i := range seq {
+		dp[i] = 1
+		for j := range i {
+			if seq[j] < seq[i] && dp[j]+1 > dp[i] {
+				dp[i] = dp[j] + 1
+			}
+		}
+		if dp[i] > best {
+			best = dp[i]
+		}
+	}
+	return len(newOrder) - best
+}
+
+// The reconciler should move the minimum number of DOM nodes for a keyed
+// reorder: only those outside the longest increasing subsequence. The old
+// greedy heuristic moved up to N-1 for a single-element rotation.
+func TestKeyedReorderMinimalMoves(t *testing.T) {
+	r := testdom.Mount(g.C0(reorderProbe))
+	id := map[string]*testdom.Elem{}
+	for _, li := range r.FindAll("li") {
+		id[li.Children[0].Text] = li
+	}
+
+	cur := []string{"a", "b", "c", "d", "e"}
+	cases := [][]string{
+		{"b", "c", "d", "e", "a"}, // rotate left   → 1 move
+		{"d", "e", "a", "b", "c"}, // rotate right×2 → 2 moves
+		{"e", "d", "c", "b", "a"}, // reverse        → 4 moves
+		{"e", "a", "b", "c", "d"}, // rotate right   → 1 move
+		{"e", "c", "a", "d", "b"}, // scramble
+		{"a", "b", "c", "d", "e"}, // identity       → 0 moves
+	}
+	for _, next := range cases {
+		want := minimalMoves(cur, next)
+		r.ResetMoves()
+		applyOrder(next)
+		r.Settle()
+
+		if got := liOrder(r); !sameStrs(got, next) {
+			t.Fatalf("order after %v→%v: got %v", cur, next, got)
+		}
+		if r.Moves() != want {
+			t.Fatalf("reorder %v→%v: %d moves, want minimal %d", cur, next, r.Moves(), want)
+		}
+		cur = next
+	}
+
+	// every key kept its original DOM node across all the reorders
+	for _, li := range r.FindAll("li") {
+		text := li.Children[0].Text
+		if id[text] != li {
+			t.Fatalf("li %q lost DOM identity across reorders", text)
+		}
+	}
+}
+
+// Reorders mixed with insertions and removals must still land in the right
+// order; new keys mount, missing keys unmount, the rest move minimally.
+func TestKeyedReorderWithInsertAndRemove(t *testing.T) {
+	r := testdom.Mount(g.C0(reorderProbe))
+	applyOrder([]string{"x", "c", "a", "y", "e"}) // drop b,d; add x,y; reorder
+	r.Settle()
+	if got := liOrder(r); !sameStrs(got, []string{"x", "c", "a", "y", "e"}) {
+		t.Fatalf("order: %v", got)
+	}
+}
+
 func ToggleInner() *g.Node {
 	on, setOn := g.UseState(false)
 	return g.Fragment(

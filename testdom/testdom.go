@@ -31,6 +31,7 @@ type R struct {
 
 	dispatch renderer.Dispatch
 	pending  []func()
+	moves    int
 }
 
 // Mount renders root into a fresh fake DOM and settles all scheduled work
@@ -71,6 +72,10 @@ func (r *R) InsertBefore(parent, child, before renderer.Node) {
 	p := parent.(*Elem)
 	c := child.(*Elem)
 	if c.parent != nil {
+		// Re-inserting an already-attached node is a move, not a fresh
+		// mount; Moves() exposes the count so tests can assert that
+		// reconciliation moves the minimum number of DOM nodes.
+		r.moves++
 		c.parent.removeChild(c)
 	}
 	c.parent = p
@@ -157,6 +162,14 @@ func (r *R) PreventDefault(raw any) {
 func (r *R) StopPropagation(raw any) {}
 
 // --- test helpers ---
+
+// Moves reports how many DOM moves (re-insertions of already-attached
+// nodes) the renderer has performed so far. ResetMoves zeroes it so a
+// single update's moves can be measured in isolation.
+func (r *R) Moves() int { return r.moves }
+
+// ResetMoves zeroes the move counter.
+func (r *R) ResetMoves() { r.moves = 0 }
 
 // Settle runs scheduled flushes until none remain.
 func (r *R) Settle() {

@@ -1,8 +1,6 @@
 package grove
 
 import (
-	"math"
-
 	"github.com/gyoumi/grove/renderer"
 )
 
@@ -269,30 +267,81 @@ func (a *App) patchChildren(oldKids, newKids []*Node, parent *Node, pinst *insta
 		}
 	}
 
+	// Decide which kept nodes can stay put: the longest run of kept nodes
+	// whose old indices already increase in the new order needs no DOM
+	// moves, so only the rest move. That run is the longest increasing
+	// subsequence of the kept nodes' old indices — minimizing moves rather
+	// than the greedy "stay if not smaller than the next" heuristic, which
+	// could move N-1 nodes for a single-element rotation.
+	var keptNew, keptOld []int
+	for i, o := range pairs {
+		if o != nil {
+			keptNew = append(keptNew, i)
+			keptOld = append(keptOld, oldIndex[o])
+		}
+	}
+	stay := make([]bool, len(newKids))
+	for _, k := range longestIncreasingSubsequence(keptOld) {
+		stay[keptNew[k]] = true
+	}
+
 	// Place right-to-left so the anchor for each child is always known.
-	// Kept nodes whose old indices already increase left-to-right stay put;
-	// anything out of order is moved before the current anchor.
 	anchor := tail
-	nextKeptOldIdx := math.MaxInt
 	for i := len(newKids) - 1; i >= 0; i-- {
 		nk := newKids[i]
 		o := pairs[i]
-		if o == nil {
+		switch {
+		case o == nil:
 			a.mount(nk, parent, pinst, parentDOM, anchor)
-		} else {
+		case stay[i]:
 			a.patch(o, nk, parent, pinst, parentDOM, anchor)
-			oi := oldIndex[o]
-			if oi > nextKeptOldIdx {
-				a.moveDOM(nk, parentDOM, anchor)
-			} else {
-				nextKeptOldIdx = oi
-			}
+		default:
+			a.patch(o, nk, parent, pinst, parentDOM, anchor)
+			a.moveDOM(nk, parentDOM, anchor)
 		}
 		if fd := firstDOM(nk); fd != nil {
 			anchor = fd
 		}
 	}
 	return newKids
+}
+
+// longestIncreasingSubsequence returns the indices into nums of a longest
+// strictly increasing subsequence (old indices are distinct). Standard
+// patience-sorting in O(n log n) with predecessor links for reconstruction.
+func longestIncreasingSubsequence(nums []int) []int {
+	if len(nums) == 0 {
+		return nil
+	}
+	tails := make([]int, 0, len(nums)) // tails[k]: index of the smallest tail of an increasing run of length k+1
+	prev := make([]int, len(nums))     // prev[i]: predecessor of i in its run
+	for i, x := range nums {
+		prev[i] = -1
+		lo, hi := 0, len(tails)
+		for lo < hi {
+			mid := (lo + hi) / 2
+			if nums[tails[mid]] < x {
+				lo = mid + 1
+			} else {
+				hi = mid
+			}
+		}
+		if lo > 0 {
+			prev[i] = tails[lo-1]
+		}
+		if lo == len(tails) {
+			tails = append(tails, i)
+		} else {
+			tails[lo] = i
+		}
+	}
+	out := make([]int, len(tails))
+	k := tails[len(tails)-1]
+	for j := len(tails) - 1; j >= 0; j-- {
+		out[j] = k
+		k = prev[k]
+	}
+	return out
 }
 
 // unmount tears down n: effect cleanups (children first, like React), event
