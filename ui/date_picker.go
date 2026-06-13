@@ -51,7 +51,7 @@ func datePickerView(p DatePickerProps) *g.Node {
 		g.Disabled(p.Disabled),
 		g.OnClick(func(*g.Event) { setOpen(!open) }),
 		g.Span(g.Class("truncate"), label),
-		g.Span(g.Class("shrink-0 text-muted-foreground"), "▾"),
+		Icon("chevron-down", "size-4 shrink-0 text-muted-foreground"),
 	)
 
 	cal := Calendar(CalendarProps{

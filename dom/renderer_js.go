@@ -46,8 +46,26 @@ func newRenderer(doc, container js.Value) *jsRenderer {
 
 func (r *jsRenderer) SetDispatch(d renderer.Dispatch) { r.dispatch = d }
 
+// svgNS is the SVG namespace; svgTags are the element names that must be
+// created in it (createElement would make inert HTMLUnknownElements). Once an
+// element is in the SVG namespace its descendants inherit it, so tag-name
+// detection is enough to render inline icons and simple vector graphics.
+const svgNS = "http://www.w3.org/2000/svg"
+
+var svgTags = map[string]bool{
+	"svg": true, "path": true, "g": true, "circle": true, "rect": true,
+	"line": true, "polyline": true, "polygon": true, "ellipse": true,
+	"defs": true, "use": true, "text": true, "tspan": true, "title": true,
+	"linearGradient": true, "radialGradient": true, "stop": true, "clipPath": true,
+}
+
 func (r *jsRenderer) CreateElement(tag string, id int) renderer.Node {
-	el := r.doc.Call("createElement", tag)
+	var el js.Value
+	if svgTags[tag] {
+		el = r.doc.Call("createElementNS", svgNS, tag)
+	} else {
+		el = r.doc.Call("createElement", tag)
+	}
 	el.Set(groveIDProp, id)
 	return el
 }

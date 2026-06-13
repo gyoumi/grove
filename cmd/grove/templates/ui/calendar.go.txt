@@ -179,10 +179,10 @@ func calendarView(p CalendarProps) *g.Node {
 	}
 
 	header := g.Div(g.Class("flex items-center justify-between gap-1 pb-2"),
-		calNav("cal-prev", "Previous month", "‹", func() { setMonth(month.addMonths(-1)) }),
+		calNav("cal-prev", "Previous month", "chevron-left", func() { setMonth(month.addMonths(-1)) }),
 		g.Div(g.Class("text-sm font-medium"), g.Data("slot", "cal-label"),
 			g.Textf("%s %d", month.Month.String(), month.Year)),
-		calNav("cal-next", "Next month", "›", func() { setMonth(month.addMonths(1)) }),
+		calNav("cal-next", "Next month", "chevron-right", func() { setMonth(month.addMonths(1)) }),
 	)
 
 	cells := make([]*g.Node, 0, 7+42)
@@ -208,14 +208,14 @@ func calendarView(p CalendarProps) *g.Node {
 	)
 }
 
-func calNav(slot, label, glyph string, onClick func()) *g.Node {
+func calNav(slot, label, iconName string, onClick func()) *g.Node {
 	return g.Button(
-		g.Class("inline-flex size-7 items-center justify-center rounded-md border border-input bg-transparent text-base leading-none text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"),
+		g.Class("inline-flex size-7 items-center justify-center rounded-md border border-input bg-transparent text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"),
 		g.Type("button"),
 		g.Data("slot", slot),
 		g.Attr("aria-label", label),
 		g.OnClick(func(*g.Event) { onClick() }),
-		glyph,
+		Icon(iconName, "size-4"),
 	)
 }
 

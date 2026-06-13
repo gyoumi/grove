@@ -148,6 +148,10 @@ const applierSource = `
 var map = {1: container};
 var listened = {};
 var alias = {focus: "focusin", blur: "focusout"};
+var svgNS = "http://www.w3.org/2000/svg";
+var svgTags = {svg:1, path:1, g:1, circle:1, rect:1, line:1, polyline:1, polygon:1,
+  ellipse:1, defs:1, use:1, text:1, tspan:1, title:1, linearGradient:1,
+  radialGradient:1, stop:1, clipPath:1};
 
 function unesc(s) {
   if (s.indexOf("\\") < 0) return s;
@@ -190,7 +194,7 @@ return function (payload) {
     for (var j = 0; j < f.length; j++) f[j] = unesc(f[j]);
     var id = +f[1];
     switch (f[0]) {
-      case "e": { var el = document.createElement(f[2]); el.__groveID = +f[3]; map[id] = el; break; }
+      case "e": { var el = svgTags[f[2]] ? document.createElementNS(svgNS, f[2]) : document.createElement(f[2]); el.__groveID = +f[3]; map[id] = el; break; }
       case "t": map[id] = document.createTextNode(f[2]); break;
       case "s": map[id].nodeValue = f[2]; break;
       case "a": map[id].setAttribute(f[2], f[3]); break;
