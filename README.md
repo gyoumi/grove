@@ -204,14 +204,17 @@ themeable design system on top:
    Textarea, NativeSelect, Label, Field, Checkbox, Switch, Separator, Alert,
    Avatar, Skeleton, Spinner, Progress, Kbd, Table, Breadcrumb, Pagination,
    AspectRatio, ScrollArea, Empty, Item, and Typography helpers. Interactive:
-   a Calendar (single date or date range, month navigation, min/max bounds),
-   dropdown DatePicker and TimePicker (an input-styled trigger that opens the
-   calendar, or hour/minute columns, in a popover), Tooltip, a modal Dialog
-   (Escape/overlay dismissal, focus trapping), and anchored Popover +
-   Dropdown menus (side/align placement, outside-click and Escape
-   dismissal, arrow-key focus, and viewport collision handling — panels
-   flip to the other side, shift until they fit, and re-measure on window
-   resize). All of it is plain Tailwind on the theme variables:
+   Accordion, Collapsible, Tabs, RadioGroup, Toggle/ToggleGroup, Slider,
+   InputOTP, HoverCard, Select, a Calendar (single date or date range, month
+   navigation, min/max bounds), dropdown DatePicker and TimePicker (an
+   input-styled trigger that opens the calendar, or hour/minute columns, in a
+   popover), Tooltip, modal Dialog and AlertDialog (Escape/overlay dismissal,
+   focus trapping), Sheet and Drawer slide-in panels, and anchored Popover,
+   Dropdown, ContextMenu, Menubar, and NavigationMenu (side/align placement,
+   outside-click and Escape dismissal, arrow-key focus, and viewport collision
+   handling — panels flip to the other side, shift until they fit, and
+   re-measure on window resize). All of it is plain Tailwind on the theme
+   variables:
 
 ```go
 ui.Card(
