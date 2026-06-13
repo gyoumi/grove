@@ -199,7 +199,8 @@ themeable design system on top:
    shadow size vs color, gradient stop position vs color), variant and
    important scoping, and arbitrary values/properties.
 4. **Components** — the `ui` package: Button, Badge, Card, Input, Label,
-   Checkbox, Separator, Alert, Avatar, Switch, Tooltip, a modal Dialog
+   Checkbox, Separator, Alert, Avatar, Switch, Tooltip, a Calendar (single
+   date or date range, month navigation, min/max bounds), a modal Dialog
    (Escape/overlay dismissal, focus trapping), and anchored Popover +
    Dropdown menus (side/align placement, outside-click and Escape
    dismissal, arrow-key focus, and viewport collision handling — panels

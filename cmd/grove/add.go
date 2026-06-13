@@ -23,6 +23,7 @@ var components = map[string][]string{
 	"avatar":    {"avatar.go"},
 	"badge":     {"badge.go"},
 	"button":    {"button.go"},
+	"calendar":  {"calendar.go"},
 	"card":      {"card.go"},
 	"checkbox":  {"checkbox.go"},
 	"dialog":    {"dialog.go", "dialog_js.go", "dialog_stub.go"},

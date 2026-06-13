@@ -4,6 +4,8 @@
 package main
 
 import (
+	"fmt"
+
 	g "github.com/gyoumi/grove"
 	"github.com/gyoumi/grove/dom"
 	"github.com/gyoumi/grove/ui"
@@ -16,6 +18,8 @@ func App() *g.Node {
 	lastAction, setLastAction := g.UseState("none")
 	name, setName := g.UseState("")
 	agreed, setAgreed := g.UseState(false)
+	rangeStart, setRangeStart := g.UseState[*ui.Date](nil)
+	rangeEnd, setRangeEnd := g.UseState[*ui.Date](nil)
 
 	g.UseEffect(func() func() {
 		dom.SetRootClass("dark", dark)
@@ -116,6 +120,18 @@ func App() *g.Node {
 			),
 		),
 
+		section("Calendar",
+			g.Div(g.Class("flex flex-wrap items-start gap-4"),
+				ui.Calendar(ui.CalendarProps{
+					Mode:    ui.CalendarRange,
+					Start:   rangeStart,
+					End:     rangeEnd,
+					OnRange: func(s, e ui.Date) { ss, ee := s, e; setRangeStart(&ss); setRangeEnd(&ee) },
+				}),
+				g.P(g.Class("text-sm text-muted-foreground"), rangeSummary(rangeStart, rangeEnd)),
+			),
+		),
+
 		ui.Dialog(ui.DialogProps{Open: open, OnClose: func() { setOpen(false) }},
 			ui.DialogHeader(
 				ui.DialogTitle("Confirm sign up"),
@@ -135,6 +151,13 @@ func section(title string, body *g.Node) *g.Node {
 		body,
 		ui.Separator(false, g.Class("mt-2")),
 	)
+}
+
+func rangeSummary(start, end *ui.Date) string {
+	if start == nil || end == nil {
+		return "pick a start and end day"
+	}
+	return fmt.Sprintf("%s → %s (%d days)", start.ISO(), end.ISO(), ui.DaysBetween(*start, *end)+1)
 }
 
 func main() {
