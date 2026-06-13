@@ -341,6 +341,17 @@ toolchain stays the default.
 - Promote the batched renderer (above) to the default once it's validated
   in real browsers, including ref-based components under batching (resolve
   `g.BindRef` ids to live nodes after each flush)
+- Heavier `ui` components, as grove-native takes (no JS-library
+  dependency):
+  - **Command palette + Combobox** — a filtered, keyboard-driven list in a
+    popover
+  - **Toasts** — a portal + context dispatcher for transient notifications
+  - **Data table** — sorting, filtering, and pagination over `Table`
+  - **Sidebar** — a collapsible app shell that folds into a `Sheet` on
+    small screens
+  - **Carousel** and **Resizable panels** — pointer-drag interactions
+  - **Chart** — primitives drawn with the new inline SVG support
+  - **Form** — a small validation helper in the `Result`/`Option` style
 
 Not on the roadmap: server-side rendering and hydration — grove stays a
 client-side framework.
