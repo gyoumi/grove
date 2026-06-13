@@ -199,11 +199,14 @@ themeable design system on top:
    corners, border sides…), value-classified groups (text size vs color,
    shadow size vs color, gradient stop position vs color), variant and
    important scoping, and arbitrary values/properties.
-4. **Components** — the `ui` package: Button, Badge, Card, Input, Label,
-   Checkbox, Separator, Alert, Avatar, Switch, Tooltip, a Calendar (single
-   date or date range, month navigation, min/max bounds), dropdown
-   DatePicker and TimePicker (an input-styled trigger that opens the
-   calendar, or hour/minute columns, in a popover), a modal Dialog
+4. **Components** — a growing `ui` package. Inline `Icon`s render as SVG.
+   Form & display: Button (+ ButtonGroup), Badge, Card, Input (+ InputGroup),
+   Textarea, NativeSelect, Label, Field, Checkbox, Switch, Separator, Alert,
+   Avatar, Skeleton, Spinner, Progress, Kbd, Table, Breadcrumb, Pagination,
+   AspectRatio, ScrollArea, Empty, Item, and Typography helpers. Interactive:
+   a Calendar (single date or date range, month navigation, min/max bounds),
+   dropdown DatePicker and TimePicker (an input-styled trigger that opens the
+   calendar, or hour/minute columns, in a popover), Tooltip, a modal Dialog
    (Escape/overlay dismissal, focus trapping), and anchored Popover +
    Dropdown menus (side/align placement, outside-click and Escape
    dismissal, arrow-key focus, and viewport collision handling — panels
