@@ -220,7 +220,9 @@ func (r *R) KeyDown(el *Elem, key string) {
 }
 
 // Find returns the first element with the given tag, depth-first, or nil.
-func (r *R) Find(tag string) *Elem { return r.Container.find(func(e *Elem) bool { return e.Tag == tag }) }
+func (r *R) Find(tag string) *Elem {
+	return r.Container.find(func(e *Elem) bool { return e.Tag == tag })
+}
 
 // FindAll returns all elements with the given tag in document order.
 func (r *R) FindAll(tag string) []*Elem {

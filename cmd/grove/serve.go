@@ -17,6 +17,7 @@ func runServe(args []string) error {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
 	port := fs.Int("port", 8080, "port to listen on")
 	dir := fs.String("dir", ".", "app directory")
+	tinygo := fs.Bool("tinygo", false, "compile with TinyGo (much smaller wasm)")
 	fs.Parse(args)
 
 	appDir, err := filepath.Abs(*dir)
@@ -30,7 +31,7 @@ func runServe(args []string) error {
 	hub := &sseHub{clients: map[chan struct{}]bool{}}
 
 	fmt.Fprintf(os.Stderr, "grove: building %s\n", appDir)
-	if err := buildAll(appDir, false); err != nil {
+	if err := buildAll(appDir, false, *tinygo); err != nil {
 		// Keep serving so the browser reloads once the code compiles again.
 		fmt.Fprintf(os.Stderr, "grove: %v\n", err)
 	} else {
@@ -39,7 +40,7 @@ func runServe(args []string) error {
 
 	go watch(appDir, func() {
 		start := time.Now()
-		if err := buildAll(appDir, false); err != nil {
+		if err := buildAll(appDir, false, *tinygo); err != nil {
 			fmt.Fprintf(os.Stderr, "grove: %v\n", err)
 			return
 		}

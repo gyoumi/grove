@@ -10,8 +10,27 @@ import (
 	"strings"
 )
 
-// buildWasm compiles the app in dir to dist/app.wasm.
-func buildWasm(dir string, release bool) error {
+// buildWasm compiles the app in dir to dist/app.wasm with the selected
+// toolchain (standard Go, or TinyGo for much smaller binaries).
+func buildWasm(dir string, release, tinygo bool) error {
+	if tinygo {
+		bin, err := exec.LookPath("tinygo")
+		if err != nil {
+			return fmt.Errorf("tinygo not found on PATH — install it from https://tinygo.org/getting-started/install/ or drop -tinygo")
+		}
+		args := []string{"build", "-o", filepath.Join("dist", "app.wasm"), "-target", "wasm"}
+		if release {
+			args = append(args, "-no-debug")
+		}
+		args = append(args, ".")
+		cmd := exec.Command(bin, args...)
+		cmd.Dir = dir
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("tinygo build failed:\n%s", strings.TrimSpace(string(out)))
+		}
+		return nil
+	}
 	args := []string{"build", "-o", filepath.Join("dist", "app.wasm")}
 	if release {
 		args = append(args, "-trimpath", "-ldflags=-s -w")
@@ -27,8 +46,23 @@ func buildWasm(dir string, release bool) error {
 	return nil
 }
 
-// copyWasmExec places the Go runtime's JS glue into dist/.
-func copyWasmExec(dir string) error {
+// copyWasmExec places the toolchain's JS glue into dist/. The glue must
+// match the compiler that produced app.wasm (TinyGo's runtime expects its
+// own wasm_exec.js), and dist/ is served before the app dir, so the right
+// copy always wins.
+func copyWasmExec(dir string, tinygo bool) error {
+	if tinygo {
+		root, err := exec.Command("tinygo", "env", "TINYGOROOT").Output()
+		if err != nil {
+			return fmt.Errorf("tinygo env TINYGOROOT: %w", err)
+		}
+		src := filepath.Join(strings.TrimSpace(string(root)), "targets", "wasm_exec.js")
+		data, err := os.ReadFile(src)
+		if err != nil {
+			return fmt.Errorf("tinygo wasm_exec.js: %w", err)
+		}
+		return os.WriteFile(filepath.Join(dir, "dist", "wasm_exec.js"), data, 0o644)
+	}
 	goroot, err := exec.Command("go", "env", "GOROOT").Output()
 	if err != nil {
 		return fmt.Errorf("go env GOROOT: %w", err)
@@ -85,14 +119,14 @@ func ensureDist(dir string) error {
 }
 
 // buildAll runs the full pipeline for serve/build.
-func buildAll(dir string, release bool) error {
+func buildAll(dir string, release, tinygo bool) error {
 	if err := ensureDist(dir); err != nil {
 		return err
 	}
-	if err := copyWasmExec(dir); err != nil {
+	if err := copyWasmExec(dir, tinygo); err != nil {
 		return err
 	}
-	if err := buildWasm(dir, release); err != nil {
+	if err := buildWasm(dir, release, tinygo); err != nil {
 		return err
 	}
 	return buildCSS(dir, release)

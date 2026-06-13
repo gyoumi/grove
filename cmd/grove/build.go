@@ -12,6 +12,7 @@ import (
 func runBuild(args []string) error {
 	fs := flag.NewFlagSet("build", flag.ExitOnError)
 	dir := fs.String("dir", ".", "app directory")
+	tinygo := fs.Bool("tinygo", false, "compile with TinyGo (much smaller wasm)")
 	fs.Parse(args)
 
 	appDir, err := filepath.Abs(*dir)
@@ -22,7 +23,7 @@ func runBuild(args []string) error {
 	if err := os.RemoveAll(filepath.Join(appDir, "dist")); err != nil {
 		return err
 	}
-	if err := buildAll(appDir, true); err != nil {
+	if err := buildAll(appDir, true, *tinygo); err != nil {
 		return err
 	}
 

@@ -44,6 +44,86 @@ func TestCN(t *testing.T) {
 		{"arbitrary property conflicts per property", []any{"[mask-type:luminance] [mask-type:alpha]"}, "[mask-type:alpha]"},
 		{"different arbitrary properties kept", []any{"[mask-type:alpha] [paint-order:stroke]"}, "[mask-type:alpha] [paint-order:stroke]"},
 		{"empty", []any{""}, ""},
+
+		// v4 trailing important markers
+		{"trailing important kept separate", []any{"p-4! p-2"}, "p-4! p-2"},
+		{"trailing important merges with leading", []any{"!p-4 p-2!"}, "p-2!"},
+
+		// page breaks vs word breaking are different properties
+		{"break families distinct", []any{"break-inside-avoid break-all break-after-page"}, "break-inside-avoid break-all break-after-page"},
+		{"word-break merges", []any{"break-all break-keep"}, "break-keep"},
+		{"break-inside merges", []any{"break-inside-avoid break-inside-auto"}, "break-inside-auto"},
+
+		// shadow size vs shadow color
+		{"shadow color kept with size", []any{"shadow-lg shadow-primary/20"}, "shadow-lg shadow-primary/20"},
+		{"shadow sizes merge", []any{"shadow-lg shadow-xl"}, "shadow-xl"},
+		{"arbitrary shadow is a size", []any{"shadow-lg shadow-[0_1px_2px_black]"}, "shadow-[0_1px_2px_black]"},
+		{"text-shadow distinct from text color", []any{"text-shadow-lg text-red-500"}, "text-shadow-lg text-red-500"},
+		{"text-shadow merges", []any{"text-shadow-sm text-shadow-lg"}, "text-shadow-lg"},
+
+		// gradient stop positions vs colors
+		{"gradient stop position kept", []any{"from-red-500 from-10%"}, "from-red-500 from-10%"},
+		{"gradient colors merge", []any{"from-red-500 from-emerald-400"}, "from-emerald-400"},
+		{"gradient positions merge", []any{"via-10% via-[25%]"}, "via-[25%]"},
+
+		// scroll margin/padding mirror the m-/p- side hierarchy
+		{"scroll families distinct", []any{"scroll-mt-2 scroll-pb-2 scroll-smooth"}, "scroll-mt-2 scroll-pb-2 scroll-smooth"},
+		{"scroll-m overrides sides", []any{"scroll-mt-2 scroll-m-4"}, "scroll-m-4"},
+		{"scroll side does not override scroll-m", []any{"scroll-m-4 scroll-mt-2"}, "scroll-m-4 scroll-mt-2"},
+
+		// snap axes vs alignment vs strictness
+		{"snap groups distinct", []any{"snap-x snap-start snap-mandatory"}, "snap-x snap-start snap-mandatory"},
+		{"snap type merges", []any{"snap-x snap-both"}, "snap-both"},
+
+		// touch resets vs pan axes
+		{"touch axes distinct", []any{"touch-pan-x touch-pan-y"}, "touch-pan-x touch-pan-y"},
+		{"touch-auto resets axes", []any{"touch-pan-x touch-pinch-zoom touch-auto"}, "touch-auto"},
+		{"pan cancels touch reset", []any{"touch-auto touch-pan-left"}, "touch-pan-left"},
+
+		// backdrop filters conflict per filter
+		{"backdrop filters distinct", []any{"backdrop-blur-sm backdrop-opacity-50"}, "backdrop-blur-sm backdrop-opacity-50"},
+		{"backdrop blur merges", []any{"backdrop-blur-sm backdrop-blur-lg"}, "backdrop-blur-lg"},
+
+		// inset-ring / inset-shadow are not position utilities
+		{"inset-ring distinct from inset", []any{"inset-ring-2 inset-4"}, "inset-ring-2 inset-4"},
+		{"inset-ring width vs color", []any{"inset-ring-2 inset-ring-primary"}, "inset-ring-2 inset-ring-primary"},
+		{"inset-shadow merges", []any{"inset-shadow-2xs inset-shadow-sm"}, "inset-shadow-sm"},
+		{"logical inset start", []any{"start-0 inset-x-2"}, "inset-x-2"},
+
+		// font-variant-numeric axes compose; normal-nums resets
+		{"fvn axes compose", []any{"ordinal tabular-nums"}, "ordinal tabular-nums"},
+		{"fvn spacing merges", []any{"tabular-nums proportional-nums"}, "proportional-nums"},
+		{"normal-nums resets fvn", []any{"ordinal tabular-nums normal-nums"}, "normal-nums"},
+		{"fvn cancels normal-nums", []any{"normal-nums tabular-nums"}, "tabular-nums"},
+
+		{"divide style vs color", []any{"divide-dashed divide-red-500"}, "divide-dashed divide-red-500"},
+		{"divide styles merge", []any{"divide-dashed divide-solid"}, "divide-solid"},
+		{"list groups distinct", []any{"list-disc list-inside"}, "list-disc list-inside"},
+		{"list type merges", []any{"list-disc list-decimal"}, "list-decimal"},
+		{"align-content vs content", []any{"content-center content-none"}, "content-center content-none"},
+		{"content property merges", []any{"content-none content-['*']"}, "content-['*']"},
+		{"hyphens merges", []any{"hyphens-auto hyphens-none"}, "hyphens-none"},
+		{"overscroll axes", []any{"overscroll-x-auto overscroll-contain"}, "overscroll-contain"},
+		{"table layout merges", []any{"table-auto table-fixed"}, "table-fixed"},
+		{"col shorthand overrides span", []any{"col-span-2 col-auto"}, "col-auto"},
+		{"span overrides col shorthand", []any{"col-auto col-span-2"}, "col-span-2"},
+		{"border-spacing axes", []any{"border-spacing-x-2 border-spacing-y-2"}, "border-spacing-x-2 border-spacing-y-2"},
+		{"border-spacing overrides axes", []any{"border-spacing-x-2 border-spacing-2"}, "border-spacing-2"},
+		{"skew axes", []any{"skew-x-3 skew-y-3"}, "skew-x-3 skew-y-3"},
+		{"skew overrides axes", []any{"skew-x-3 skew-6"}, "skew-6"},
+		{"filters distinct", []any{"grayscale invert sepia hue-rotate-90"}, "grayscale invert sepia hue-rotate-90"},
+		{"grayscale merges", []any{"grayscale grayscale-0"}, "grayscale-0"},
+		{"mix-blend merges", []any{"mix-blend-multiply mix-blend-screen"}, "mix-blend-screen"},
+		{"bg-blend is not bg-color", []any{"bg-blend-multiply bg-red-500"}, "bg-blend-multiply bg-red-500"},
+		{"mask families distinct", []any{"mask-clip-border mask-luminance mask-repeat-x"}, "mask-clip-border mask-luminance mask-repeat-x"},
+		{"mask image merges", []any{"mask-none mask-[url(m.svg)]"}, "mask-[url(m.svg)]"},
+		{"float merges", []any{"float-left float-none"}, "float-none"},
+		{"isolation merges", []any{"isolate isolation-auto"}, "isolation-auto"},
+		{"box-sizing merges", []any{"box-border box-content"}, "box-content"},
+		{"font-smoothing merges", []any{"antialiased subpixel-antialiased"}, "subpixel-antialiased"},
+		{"font-stretch distinct from weight", []any{"font-stretch-75% font-bold"}, "font-stretch-75% font-bold"},
+		{"transform mode merges", []any{"transform-gpu transform-none"}, "transform-none"},
+		{"overflow-wrap merges", []any{"wrap-break-word wrap-anywhere"}, "wrap-anywhere"},
 	}
 	for _, c := range cases {
 		if got := CN(c.args...); got != c.want {

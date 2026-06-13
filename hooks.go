@@ -1,6 +1,9 @@
 package grove
 
-import "fmt"
+import (
+	"fmt"
+	"reflect"
+)
 
 // currentInstance is the component instance currently rendering. Go wasm in
 // the browser is single-threaded, so a package global is safe; hooks must
@@ -21,8 +24,18 @@ func hookMismatch(inst *instance, hook string) {
 }
 
 // cheapEqual compares two values with ==, treating incomparable types
-// (slices, maps, funcs) as never equal.
+// (slices, maps, funcs) as never equal. Comparability is checked up front
+// because TinyGo cannot recover from a runtime comparison panic; the
+// recover stays as a net for comparable types with incomparable interface
+// fields (which the type check cannot see — standard Go only).
 func cheapEqual(a, b any) (eq bool) {
+	if a == nil || b == nil {
+		return a == nil && b == nil
+	}
+	t := reflect.TypeOf(a)
+	if t != reflect.TypeOf(b) || !t.Comparable() {
+		return false
+	}
 	defer func() {
 		if recover() != nil {
 			eq = false

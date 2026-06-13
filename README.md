@@ -193,7 +193,11 @@ themeable design system on top:
 3. **`style.CN`** — conditional class composition plus Tailwind conflict
    resolution (`CN("p-4 bg-muted", userClass)` lets the caller's classes
    win), and `style.Variants` for components whose look is picked by named
-   variants.
+   variants. Conflict resolution covers the full utility surface —
+   shorthand/longhand hierarchies (`p`/`px`/`pt`, `inset`, `rounded`
+   corners, border sides…), value-classified groups (text size vs color,
+   shadow size vs color, gradient stop position vs color), variant and
+   important scoping, and arbitrary values/properties.
 4. **Components** — the `ui` package: Button, Badge, Card, Input, Label,
    Checkbox, Separator, Alert, Avatar, Switch, Tooltip, a modal Dialog
    (Escape/overlay dismissal, focus trapping), and anchored Popover +
@@ -263,6 +267,10 @@ observable in tests via `island.SetHost`. A runnable app lives in
 | `grove build` | release build: `-s -w`, minified CSS, optional `wasm-opt`, size report |
 | `grove add <component>` | copy a ui component's source into your app |
 
+`serve` and `build` take `-tinygo` to compile with TinyGo instead of the
+standard toolchain (it must be on PATH); the matching `wasm_exec.js` is
+placed in `dist/` automatically.
+
 ## Testing
 
 The engine never touches `syscall/js` directly — it renders through a
@@ -285,16 +293,23 @@ HTML.
 
 ## Bundle size
 
-A hello-world app is ~2.6 MB of wasm (~700 KB gzipped) — that's the cost
-of shipping the Go runtime, and it's a flat cost, not per-component.
-`grove build` strips symbols, runs `wasm-opt` when available, and prints
-both raw and gzipped sizes. Serve wasm with gzip or brotli enabled.
+A hello-world app is ~2.6 MB of wasm (~740 KB gzipped) with the standard
+toolchain — that's the cost of shipping the Go runtime, and it's a flat
+cost, not per-component. `grove build` strips symbols, runs `wasm-opt`
+when available, and prints both raw and gzipped sizes. Serve wasm with
+gzip or brotli enabled.
+
+With `grove build -tinygo` the same app is **~295 KB raw (~120 KB
+gzipped)**. grove's engine runs its full test suite under the TinyGo
+compiler, so the engine itself is safe there; the trade-offs are TinyGo's:
+slower compiles, and reflection-heavy stdlib packages (`encoding/json`
+works but costs size) or unsupported ones may not carry over. The standard
+toolchain stays the default.
 
 ## Roadmap
 
-- Full tailwind-merge parity in `style.CN`
-- TinyGo build mode for smaller binaries
 - Batched DOM patch protocol to cut wasm↔JS call overhead
+- Longest-increasing-subsequence move optimization for keyed lists
 
 Not on the roadmap: server-side rendering and hydration — grove stays a
 client-side framework.
