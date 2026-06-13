@@ -128,6 +128,10 @@ func (r *jsRenderer) Listen(event string) {
 	r.container.Call("addEventListener", domEvent, cb)
 }
 
+// Flush is a no-op: this renderer applies each DOM op immediately. The
+// batched renderer (MountBatched) is the one that defers and flushes here.
+func (r *jsRenderer) Flush() {}
+
 func (r *jsRenderer) Schedule(f func()) {
 	r.queue = append(r.queue, f)
 	js.Global().Call("queueMicrotask", r.drainFn)

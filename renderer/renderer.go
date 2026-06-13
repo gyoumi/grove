@@ -42,6 +42,12 @@ type Renderer interface {
 	// (a microtask in the browser). The reconciler uses it to batch renders.
 	Schedule(f func())
 
+	// Flush is called once per commit, after a render pass has applied all
+	// its DOM mutations and before effects run, so effects observe a
+	// finished DOM. Renderers that mutate the DOM immediately leave this a
+	// no-op; a batched renderer applies its accumulated op buffer here.
+	Flush()
+
 	EventOps
 }
 

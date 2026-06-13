@@ -43,6 +43,10 @@ func Mount(root *grove.Node) *R {
 	return r
 }
 
+// New returns an empty renderer with just a container — a target for
+// replaying a recorded patch buffer (see patch.Apply).
+func New() *R { return &R{Container: &Elem{Tag: "#container"}} }
+
 // --- renderer.Renderer implementation ---
 
 func (r *R) SetDispatch(d renderer.Dispatch) { r.dispatch = d }
@@ -110,6 +114,9 @@ func (e *Elem) removeChild(c *Elem) {
 }
 
 func (r *R) Listen(event string) {}
+
+// Flush is a no-op: testdom mutates its tree as ops arrive.
+func (r *R) Flush() {}
 
 func (r *R) Schedule(f func()) { r.pending = append(r.pending, f) }
 

@@ -38,7 +38,8 @@ func Mount(r renderer.Renderer, container renderer.Node, root *Node) *App {
 	a := &App{r: r, container: container, root: root, byID: map[int]*Node{}}
 	r.SetDispatch(a.dispatch)
 	a.mount(root, nil, nil, container, nil)
-	a.flush() // run mount effects (and any renders they trigger)
+	a.r.Flush() // commit the initial DOM before mount effects observe it
+	a.flush()   // run mount effects (and any renders they trigger)
 	return a
 }
 
@@ -79,6 +80,9 @@ func (a *App) flush() {
 		for _, inst := range batch {
 			a.renderInstance(inst)
 		}
+		// Commit the batch's DOM mutations (a no-op for renderers that apply
+		// immediately) before effects, so effects observe a finished DOM.
+		a.r.Flush()
 		a.runEffects()
 	}
 }

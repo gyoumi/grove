@@ -295,6 +295,26 @@ func TestCounter(t *testing.T) {
 query the fake DOM (`Find`, `FindByAttr`, `FindText`), and snapshot it as
 HTML.
 
+## Batched rendering (experimental)
+
+By default each DOM mutation is one `syscall/js` call. The `patch` package
+is an alternative protocol that records a commit's mutations into an op
+buffer and ships the whole batch to a JS-side applier in **one** call,
+trading N boundary crossings per commit for one. Nodes are referenced by
+integer ids, so the op stream is self-contained: the same encoding drives
+a host reference applier (`patch.Apply`, replayed onto any renderer) and
+the browser applier, and the protocol's correctness is verified on the
+host by replaying recorded ops onto `testdom` and matching a direct
+render.
+
+`dom.MountBatched("#root", root)` renders through it. It's opt-in, not the
+default: ref-based components (anything using `g.BindRef` — Popover,
+DatePicker, Dialog, islands) need a live `js.Value` handle, which batching
+defers behind an id, so those still want `dom.Mount` for now.
+[`examples/batched`](examples/batched) exercises events, a keyed list, and
+a value property under the protocol — the place to validate it in a real
+browser.
+
 ## Bundle size
 
 A hello-world app is ~2.6 MB of wasm (~740 KB gzipped) with the standard
@@ -312,14 +332,17 @@ toolchain stays the default.
 
 ## Roadmap
 
-- Batched DOM patch protocol to cut wasm↔JS call overhead
+- Promote the batched renderer (above) to the default once it's validated
+  in real browsers, including ref-based components under batching (resolve
+  `g.BindRef` ids to live nodes after each flush)
 
 Not on the roadmap: server-side rendering and hydration — grove stays a
 client-side framework.
 
 ## Examples
 
-[`examples/`](examples/) contains four runnable apps — `counter` (smallest
+[`examples/`](examples/) contains five runnable apps — `counter` (smallest
 possible), `todo` (state, lists, keys), `showcase` (every ui component,
-dark mode, dialog), and `islands` (a React component living inside a grove
-app). Run any of them with `grove serve` from its directory.
+dark mode, dialog), `islands` (a React component living inside a grove
+app), and `batched` (the experimental batched patch protocol). Run any of
+them with `grove serve` from its directory.
