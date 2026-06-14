@@ -115,6 +115,42 @@ func TestSheetSidePlacement(t *testing.T) {
 	}
 }
 
+func contextMenuApp(onPick func(string)) func() *g.Node {
+	return func() *g.Node {
+		return ui.ContextMenu(ui.ContextMenuProps{},
+			g.Div(g.Data("slot", "cm-area"), "Right-click here"),
+			ui.DropdownItem(ui.DropdownItemProps{OnSelect: func() { onPick("cut") }}, "Cut"),
+			ui.DropdownItem(ui.DropdownItemProps{OnSelect: func() { onPick("copy") }}, "Copy"),
+		)
+	}
+}
+
+func TestContextMenuOpensAtPointer(t *testing.T) {
+	var picked string
+	r := testdom.Mount(g.C0(contextMenuApp(func(s string) { picked = s })))
+	if r.FindByAttr("data-slot", "context-menu-content") != nil {
+		t.Fatal("menu should start closed")
+	}
+
+	r.Fire(r.FindByAttr("data-slot", "context-menu-trigger"), "contextmenu",
+		map[string]any{"clientX": 120.0, "clientY": 64.0})
+	menu := r.FindByAttr("data-slot", "context-menu-content")
+	if menu == nil {
+		t.Fatalf("right-click should open the menu: %s", r.HTML())
+	}
+	if !strings.Contains(menu.Attrs["style"], "left:120px") || !strings.Contains(menu.Attrs["style"], "top:64px") {
+		t.Fatalf("menu should be positioned at the pointer: %q", menu.Attrs["style"])
+	}
+
+	r.Click(r.FindText("Copy"))
+	if picked != "copy" {
+		t.Fatalf("selecting should run OnSelect, got %q", picked)
+	}
+	if r.FindByAttr("data-slot", "context-menu-content") != nil {
+		t.Fatal("selecting should close the menu")
+	}
+}
+
 func menubarApp() *g.Node {
 	picked := g.UseRef("")
 	return ui.Menubar(ui.MenubarProps{},

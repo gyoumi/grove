@@ -45,7 +45,9 @@ func contextMenuView(a contextMenuArgs) *g.Node {
 		),
 	}
 	if open {
-		body = append(body, g.Fragment(
+		// Portal so the fixed overlay and the pointer-positioned menu are
+		// relative to the viewport, not a transformed ancestor.
+		body = append(body, g.Portal(
 			g.Div(
 				g.Class("fixed inset-0 z-40"),
 				g.Data("slot", "context-menu-overlay"),

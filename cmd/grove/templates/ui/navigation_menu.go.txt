@@ -7,12 +7,14 @@ import (
 
 const navTriggerClass = "inline-flex h-9 items-center justify-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none"
 
-// NavMenuItem is one entry: a Label, an optional Href for a plain link, and an
-// optional Panel shown on hover (which makes it a dropdown trigger instead).
+// NavMenuItem is one entry: a Label, an optional Href for a plain link, a
+// Target (e.g. "_blank" to open in a new tab), and an optional Panel shown on
+// hover (which makes it a dropdown trigger instead).
 type NavMenuItem struct {
-	Label any
-	Href  string
-	Panel []any
+	Label  any
+	Href   string
+	Target string
+	Panel  []any
 }
 
 type NavigationMenuProps struct {
@@ -25,9 +27,15 @@ func NavigationMenu(p NavigationMenuProps, items ...NavMenuItem) *g.Node {
 	entries := make([]any, 0, len(items))
 	for _, it := range items {
 		if len(it.Panel) == 0 {
-			entries = append(entries, g.El("li",
-				g.El("a", g.Class(navTriggerClass), g.Data("slot", "navigation-menu-link"), g.Attr("href", it.Href), it.Label),
-			))
+			link := []any{
+				g.Class(navTriggerClass),
+				g.Data("slot", "navigation-menu-link"),
+				g.Attr("href", it.Href),
+			}
+			if it.Target != "" {
+				link = append(link, g.Attr("target", it.Target), g.Attr("rel", "noopener noreferrer"))
+			}
+			entries = append(entries, g.El("li", g.El("a", append(link, it.Label)...)))
 			continue
 		}
 		panel := append([]any{
