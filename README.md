@@ -222,8 +222,10 @@ themeable design system on top:
    outside-click and Escape dismissal, arrow-key focus, and viewport collision
    handling — panels flip to the other side, shift until they fit, and
    re-measure on window resize). A `Toaster` plus the imperative `ui.Toast`
-   gives transient notifications. All of it is plain Tailwind on the theme
-   variables:
+   gives transient notifications. Larger pieces too: a `Chart` (line/bar/area
+   over inline SVG), a `Carousel`, a collapsible `Sidebar` shell, draggable
+   `Resizable` panels, and a `Form` helper (`UseForm` + `FormField`). All of
+   it is plain Tailwind on the theme variables:
 
 ```go
 ui.Card(
@@ -350,13 +352,8 @@ toolchain stays the default.
 - Promote the batched renderer (above) to the default once it's validated
   in real browsers, including ref-based components under batching (resolve
   `g.BindRef` ids to live nodes after each flush)
-- Heavier `ui` components, as grove-native takes (no JS-library
-  dependency):
-  - **Sidebar** — a collapsible app shell that folds into a `Sheet` on
-    small screens
-  - **Carousel** and **Resizable panels** — pointer-drag interactions
-  - **Chart** — primitives drawn with the new inline SVG support
-  - **Form** — a small validation helper in the `Result`/`Option` style
+- Carousel and mobile Sidebar gestures (pointer-drag swipe / slide-over),
+  and exit animations for the menu overlays
 
 Not on the roadmap: server-side rendering and hydration — grove stays a
 client-side framework.
