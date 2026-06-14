@@ -56,9 +56,15 @@ func carouselView(a carouselArgs) *g.Node {
 		if slot == "carousel-next" {
 			side = "right-2"
 		}
+		// Faded out until the carousel is hovered (or the button is focused, for
+		// keyboard users); at the ends the unavailable arrow stays hidden.
+		visibility := "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+		if disabled {
+			visibility = "opacity-0 pointer-events-none"
+		}
 		return g.Button(
 			g.Type("button"),
-			g.Class(style.CN("absolute top-1/2 z-10 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full border bg-background text-foreground shadow transition-opacity hover:bg-accent disabled:opacity-40", side)),
+			g.Class(style.CN("absolute top-1/2 z-10 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full border bg-background/90 text-foreground shadow backdrop-blur-sm transition-opacity hover:bg-accent", side, visibility)),
 			g.Data("slot", slot),
 			g.Aria("label", slot),
 			g.Disabled(disabled),
@@ -68,7 +74,7 @@ func carouselView(a carouselArgs) *g.Node {
 	}
 
 	body := []any{
-		g.Class(style.CN("relative", a.p.Class)),
+		g.Class(style.CN("group relative w-full", a.p.Class)),
 		g.Data("slot", "carousel"),
 		g.Role("region"),
 		g.Div(g.Class("overflow-hidden rounded-lg"), track),
