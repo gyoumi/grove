@@ -211,7 +211,8 @@ themeable design system on top:
    Avatar, Skeleton, Spinner, Progress, Kbd, Table, Breadcrumb, Pagination,
    AspectRatio, ScrollArea, Empty, Item, and Typography helpers. Interactive:
    Accordion, Collapsible, Tabs, RadioGroup, Toggle/ToggleGroup, Slider,
-   InputOTP, HoverCard, Select, a Calendar (single date or date range, month
+   InputOTP, HoverCard, Select, Combobox, Command, a Calendar (single date
+   or date range, month
    navigation, min/max bounds), dropdown DatePicker and TimePicker (an
    input-styled trigger that opens the calendar, or hour/minute columns, in a
    popover), Tooltip, modal Dialog and AlertDialog (Escape/overlay dismissal,
@@ -349,8 +350,6 @@ toolchain stays the default.
   `g.BindRef` ids to live nodes after each flush)
 - Heavier `ui` components, as grove-native takes (no JS-library
   dependency):
-  - **Command palette + Combobox** — a filtered, keyboard-driven list in a
-    popover
   - **Toasts** — a portal + context dispatcher for transient notifications
   - **Data table** — sorting, filtering, and pagination over `Table`
   - **Sidebar** — a collapsible app shell that folds into a `Sheet` on

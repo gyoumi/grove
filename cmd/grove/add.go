@@ -32,6 +32,8 @@ var components = map[string][]string{
 	"card":            {"card.go"},
 	"checkbox":        {"checkbox.go"},
 	"collapsible":     {"collapsible.go"},
+	"combobox":        {"combobox.go", "command.go", "icon.go", "popover.go", "popover_js.go", "popover_stub.go"},
+	"command":         {"command.go", "icon.go"},
 	"context-menu":    {"context_menu.go", "dropdown.go", "menu_js.go", "menu_stub.go", "popover.go", "popover_js.go", "popover_stub.go"},
 	"date-picker":     {"date_picker.go", "calendar.go", "icon.go", "popover.go", "popover_js.go", "popover_stub.go"},
 	"dialog":          {"dialog.go", "dialog_js.go", "dialog_stub.go"},
