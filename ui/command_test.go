@@ -59,6 +59,15 @@ func TestCommandFiltersClicksAndKeyboard(t *testing.T) {
 		t.Fatalf("Enter should select the active item, got %q", picked)
 	}
 
+	// hovering moves the active highlight to that row
+	r.Fire(r.FindByAttr("data-value", "Apple"), "mouseover", nil)
+	if r.FindByAttr("data-value", "Apple").Attrs["data-active"] != "1" {
+		t.Fatalf("hovering should activate the row: %s", r.HTML())
+	}
+	if r.FindByAttr("data-value", "Banana").Attrs["data-active"] == "1" {
+		t.Fatal("only one row should be active at a time")
+	}
+
 	// clicking selects directly
 	picked = ""
 	r.Click(r.FindByAttr("data-value", "Cherry"))

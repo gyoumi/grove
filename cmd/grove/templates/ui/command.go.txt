@@ -133,13 +133,21 @@ func commandView(a commandArgs) *g.Node {
 			rows = append(rows, g.Button(
 				g.Type("button"),
 				g.Class(style.CN(
-					"flex w-full cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none disabled:pointer-events-none disabled:opacity-50",
+					"flex w-full cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none transition-colors disabled:pointer-events-none disabled:opacity-50",
 					map[string]bool{"bg-accent text-accent-foreground": i == active},
 				)),
 				g.Data("slot", "command-item"),
 				g.Data("value", fi.item.Value),
 				g.AttrIf(i == active, "data-active", "1"),
 				g.Disabled(fi.item.Disabled),
+				// Hovering moves the highlight to this row (so mouse and
+				// keyboard share one active item, and Enter picks what you
+				// last pointed at).
+				g.OnMouseOver(func(*g.Event) {
+					if !fi.item.Disabled {
+						setActive(i)
+					}
+				}),
 				g.OnClick(func(*g.Event) { pick(fi.item) }),
 				label,
 			))
