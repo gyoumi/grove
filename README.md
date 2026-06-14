@@ -208,7 +208,8 @@ themeable design system on top:
 4. **Components** — a growing `ui` package. Inline `Icon`s render as SVG.
    Form & display: Button (+ ButtonGroup), Badge, Card, Input (+ InputGroup),
    Textarea, NativeSelect, Label, Field, Checkbox, Switch, Separator, Alert,
-   Avatar, Skeleton, Spinner, Progress, Kbd, Table, Breadcrumb, Pagination,
+   Avatar, Skeleton, Spinner, Progress, Kbd, Table, DataTable (generic,
+   sortable/filterable/paginated), Breadcrumb, Pagination,
    AspectRatio, ScrollArea, Empty, Item, and Typography helpers. Interactive:
    Accordion, Collapsible, Tabs, RadioGroup, Toggle/ToggleGroup, Slider,
    InputOTP, HoverCard, Select, Combobox, Command, a Calendar (single date
@@ -351,7 +352,6 @@ toolchain stays the default.
   `g.BindRef` ids to live nodes after each flush)
 - Heavier `ui` components, as grove-native takes (no JS-library
   dependency):
-  - **Data table** — sorting, filtering, and pagination over `Table`
   - **Sidebar** — a collapsible app shell that folds into a `Sheet` on
     small screens
   - **Carousel** and **Resizable panels** — pointer-drag interactions
