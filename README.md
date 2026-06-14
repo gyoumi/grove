@@ -74,6 +74,10 @@ of:
 - **nil** — skipped, which makes inline conditionals pleasant
 
 `g.Fragment(…)` groups children without a wrapper element, like `<>…</>`.
+`g.Portal(…)` renders its children into the app's mount container instead of
+at that spot in the tree (while keeping them wired for events and context),
+so overlays position relative to the viewport rather than a transformed
+ancestor — the ui Dialog/Sheet/Drawer use it.
 
 ### Conditionals and lists
 

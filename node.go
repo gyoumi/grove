@@ -18,6 +18,7 @@ const (
 	kindElement
 	kindComponent
 	kindFragment
+	kindPortal
 )
 
 // Node is a virtual DOM node: an element, a text node, a fragment, or a
@@ -116,6 +117,16 @@ func Textf(format string, a ...any) *Node {
 // <>...</> in React.
 func Fragment(args ...any) *Node {
 	n := &Node{kind: kindFragment}
+	n.apply(args)
+	return n
+}
+
+// Portal renders its children into the app's mount container instead of at
+// this position in the tree, while keeping them in the virtual tree for
+// events and context. Overlays (dialogs, sheets) use it so their fixed
+// positioning is relative to the viewport, not a transformed ancestor.
+func Portal(args ...any) *Node {
+	n := &Node{kind: kindPortal}
 	n.apply(args)
 	return n
 }

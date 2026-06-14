@@ -39,14 +39,14 @@ func drawerView(a drawerArgs) *g.Node {
 			a.p.OnClose()
 		}
 	}
-	return g.Fragment(
+	return g.Portal(
 		g.Div(
-			g.Class("fixed inset-0 z-50 bg-black/80"),
+			g.Class("fixed inset-0 z-50 bg-black/80 animate-overlay-in"),
 			g.Data("slot", "drawer-overlay"),
 			g.OnClick(func(*g.Event) { close() }),
 		),
 		g.Div(
-			g.Class(style.CN("fixed inset-x-0 bottom-0 z-50 mt-24 flex max-h-[80vh] flex-col gap-4 rounded-t-xl border bg-background p-6 shadow-lg", a.p.Class)),
+			g.Class(style.CN("fixed inset-x-0 bottom-0 z-50 mt-24 flex max-h-[80vh] flex-col gap-4 rounded-t-xl border bg-background p-6 shadow-lg animate-slide-in-bottom", a.p.Class)),
 			g.Role("dialog"),
 			g.Aria("modal", "true"),
 			g.TabIndex(-1),

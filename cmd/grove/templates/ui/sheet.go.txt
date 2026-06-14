@@ -21,6 +21,15 @@ var sheetSideClasses = map[SheetSide]string{
 	SheetBottom: "inset-x-0 bottom-0 border-t",
 }
 
+// sheetSideAnim is the enter animation per side (defined in the app's CSS;
+// grove init scaffolds the keyframes).
+var sheetSideAnim = map[SheetSide]string{
+	SheetRight:  "animate-slide-in-right",
+	SheetLeft:   "animate-slide-in-left",
+	SheetTop:    "animate-slide-in-top",
+	SheetBottom: "animate-slide-in-bottom",
+}
+
 type SheetProps struct {
 	Open    bool
 	OnClose func()
@@ -60,14 +69,14 @@ func sheetView(a sheetArgs) *g.Node {
 			a.p.OnClose()
 		}
 	}
-	return g.Fragment(
+	return g.Portal(
 		g.Div(
-			g.Class("fixed inset-0 z-50 bg-black/80"),
+			g.Class("fixed inset-0 z-50 bg-black/80 animate-overlay-in"),
 			g.Data("slot", "sheet-overlay"),
 			g.OnClick(func(*g.Event) { close() }),
 		),
 		g.Div(
-			g.Class(style.CN("fixed z-50 flex flex-col gap-4 bg-background p-6 shadow-lg", sheetSideClasses[side], a.p.Class)),
+			g.Class(style.CN("fixed z-50 flex flex-col gap-4 bg-background p-6 shadow-lg", sheetSideClasses[side], sheetSideAnim[side], a.p.Class)),
 			g.Role("dialog"),
 			g.Aria("modal", "true"),
 			g.TabIndex(-1),

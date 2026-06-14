@@ -36,6 +36,8 @@ func firstDOM(n *Node) renderer.Node {
 				return d
 			}
 		}
+		// kindPortal contributes no DOM here — its children live in the
+		// portal root — so it falls through to nil.
 	}
 	return nil
 }
@@ -90,6 +92,13 @@ func (a *App) mount(n *Node, parent *Node, pinst *instance, parentDOM, anchor re
 	case kindFragment:
 		for _, c := range n.children {
 			a.mount(c, n, pinst, parentDOM, anchor)
+		}
+
+	case kindPortal:
+		// Children mount into the portal root (the app container), not the
+		// caller's parentDOM, so they escape transformed ancestors.
+		for _, c := range n.children {
+			a.mount(c, n, pinst, a.r.PortalRoot(), nil)
 		}
 
 	case kindComponent:
@@ -148,6 +157,9 @@ func (a *App) patch(old, new *Node, parent *Node, pinst *instance, parentDOM, an
 
 	case kindFragment:
 		new.children = a.patchChildren(old.children, new.children, new, pinst, parentDOM, anchor)
+
+	case kindPortal:
+		new.children = a.patchChildren(old.children, new.children, new, pinst, a.r.PortalRoot(), nil)
 
 	case kindComponent:
 		inst := old.inst
@@ -368,6 +380,13 @@ func (a *App) unmount(n *Node, parentDOM renderer.Node, removeDOM bool) {
 	case kindFragment:
 		for _, c := range n.children {
 			a.unmount(c, parentDOM, removeDOM)
+		}
+
+	case kindPortal:
+		// Portal children live in the portal root, not in any unmounting
+		// ancestor's DOM subtree, so they must always be removed explicitly.
+		for _, c := range n.children {
+			a.unmount(c, a.r.PortalRoot(), true)
 		}
 
 	case kindComponent:

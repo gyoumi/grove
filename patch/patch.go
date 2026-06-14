@@ -154,6 +154,10 @@ func (r *Recorder) id(n renderer.Node) int {
 
 func (r *Recorder) SetDispatch(d renderer.Dispatch) { r.dispatch = d }
 
+// PortalRoot is the container id; the batched browser renderer inherits this,
+// so portal children attach under the mount container.
+func (r *Recorder) PortalRoot() renderer.Node { return ContainerID }
+
 func (r *Recorder) CreateElement(tag string, groveID int) renderer.Node {
 	id := r.nextID
 	r.nextID++

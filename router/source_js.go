@@ -3,6 +3,7 @@
 package router
 
 import (
+	"strings"
 	"syscall/js"
 )
 
@@ -19,7 +20,16 @@ type historySource struct {
 var src source = &historySource{}
 
 func (h *historySource) path() string {
-	return normalize(js.Global().Get("location").Get("pathname").String())
+	loc := js.Global().Get("location")
+	p := normalize(loc.Get("pathname").String())
+	// A leftover hash-route (#/something, e.g. a stale link from before
+	// path routing) is not a valid path URL; fold it into the path so it
+	// matches no real route and the not-found route renders instead of the
+	// home page. A plain in-page anchor (#section) is left alone.
+	if hash := loc.Get("hash").String(); strings.HasPrefix(hash, "#/") {
+		return p + hash
+	}
+	return p
 }
 
 func (h *historySource) navigate(p string) {

@@ -51,6 +51,10 @@ func New() *R { return &R{Container: &Elem{Tag: "#container"}} }
 
 func (r *R) SetDispatch(d renderer.Dispatch) { r.dispatch = d }
 
+// PortalRoot is the container; in memory there are no layout contexts, so
+// portal children just attach alongside the rest and remain queryable.
+func (r *R) PortalRoot() renderer.Node { return r.Container }
+
 func (r *R) CreateElement(tag string, id int) renderer.Node {
 	return &Elem{Tag: tag, ID: id, Attrs: map[string]string{}, Props: map[string]any{}}
 }

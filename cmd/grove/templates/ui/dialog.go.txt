@@ -52,14 +52,14 @@ func dialog(a dialogArgs) *g.Node {
 		}
 	}
 
-	return g.Fragment(
+	return g.Portal(
 		g.Div(
-			g.Class("fixed inset-0 z-50 bg-black/80"),
+			g.Class("fixed inset-0 z-50 bg-black/80 animate-overlay-in"),
 			g.Data("slot", "dialog-overlay"),
 			g.OnClick(func(*g.Event) { close() }),
 		),
 		g.Div(
-			g.Class(style.CN("fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg sm:rounded-lg", a.p.Class)),
+			g.Class(style.CN("fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg duration-200 animate-dialog-in sm:rounded-lg", a.p.Class)),
 			g.Role("dialog"),
 			g.Aria("modal", "true"),
 			g.TabIndex(-1),

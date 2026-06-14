@@ -20,6 +20,11 @@ type Renderer interface {
 	// at mount, before any Listen call.
 	SetDispatch(d Dispatch)
 
+	// PortalRoot is the node that Portal children mount under (the app's
+	// mount container), so they sit outside any transformed app content and
+	// position relative to the viewport.
+	PortalRoot() Node
+
 	CreateElement(tag string, id int) Node
 	CreateText(text string) Node
 	SetText(n Node, text string)

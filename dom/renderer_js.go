@@ -46,6 +46,11 @@ func newRenderer(doc, container js.Value) *jsRenderer {
 
 func (r *jsRenderer) SetDispatch(d renderer.Dispatch) { r.dispatch = d }
 
+// PortalRoot is the mount container; portal children sit beside the app's
+// root content, outside any transformed subtree, so their fixed positioning
+// is relative to the viewport.
+func (r *jsRenderer) PortalRoot() renderer.Node { return r.container }
+
 // svgNS is the SVG namespace; svgTags are the element names that must be
 // created in it (createElement would make inert HTMLUnknownElements). Once an
 // element is in the SVG namespace its descendants inherit it, so tag-name
