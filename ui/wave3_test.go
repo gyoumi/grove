@@ -68,6 +68,40 @@ func TestAlertDialogDoesNotDismissOnOverlay(t *testing.T) {
 	}
 }
 
+var sheetSetOpen func(bool)
+
+func sheetExitApp() *g.Node {
+	open, set := g.UseState(true)
+	sheetSetOpen = set
+	return ui.Sheet(ui.SheetProps{Open: open, Side: ui.SheetRight, OnClose: func() { set(false) }},
+		ui.SheetHeader(ui.SheetTitle("Filters")))
+}
+
+func TestSheetSlidesOutThenUnmounts(t *testing.T) {
+	r := testdom.Mount(g.C0(sheetExitApp))
+	if r.FindByAttr("data-slot", "sheet-content") == nil {
+		t.Fatalf("sheet should be open: %s", r.HTML())
+	}
+
+	// Closing keeps the panel mounted, in a slide-out state, until the
+	// animation ends.
+	sheetSetOpen(false)
+	r.Settle()
+	content := r.FindByAttr("data-slot", "sheet-content")
+	if content == nil {
+		t.Fatal("sheet should stay mounted during the close-out animation")
+	}
+	if content.Attrs["data-state"] != "closing" || !strings.Contains(content.Attrs["class"], "animate-slide-out-right") {
+		t.Fatalf("sheet should be sliding out: %s", content.HTML())
+	}
+
+	// The slide-out animation finishing unmounts it.
+	r.Fire(content, "animationend", map[string]any{"animationName": "slide-out-right"})
+	if r.FindByAttr("data-slot", "sheet-content") != nil {
+		t.Fatalf("sheet should unmount once it has slid out: %s", r.HTML())
+	}
+}
+
 func TestSheetSidePlacement(t *testing.T) {
 	r := testdom.Mount(ui.Sheet(ui.SheetProps{Open: true, Side: ui.SheetLeft},
 		ui.SheetHeader(ui.SheetTitle("Filters")),

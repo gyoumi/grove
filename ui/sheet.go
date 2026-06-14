@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"strings"
+
 	g "github.com/gyoumi/grove"
 	"github.com/gyoumi/grove/style"
 )
@@ -21,13 +23,20 @@ var sheetSideClasses = map[SheetSide]string{
 	SheetBottom: "inset-x-0 bottom-0 border-t",
 }
 
-// sheetSideAnim is the enter animation per side (defined in the app's CSS;
-// grove init scaffolds the keyframes).
+// sheetSideAnim/sheetSideAnimOut are the enter/leave animations per side
+// (defined in the app's CSS; grove init scaffolds the keyframes).
 var sheetSideAnim = map[SheetSide]string{
 	SheetRight:  "animate-slide-in-right",
 	SheetLeft:   "animate-slide-in-left",
 	SheetTop:    "animate-slide-in-top",
 	SheetBottom: "animate-slide-in-bottom",
+}
+
+var sheetSideAnimOut = map[SheetSide]string{
+	SheetRight:  "animate-slide-out-right",
+	SheetLeft:   "animate-slide-out-left",
+	SheetTop:    "animate-slide-out-top",
+	SheetBottom: "animate-slide-out-bottom",
 }
 
 type SheetProps struct {
@@ -54,14 +63,30 @@ func sheetView(a sheetArgs) *g.Node {
 		side = SheetRight
 	}
 	contentRef := g.UseRef[any](nil)
+	// rendered keeps the panel mounted through the close-out animation;
+	// closing flips it from slide-in to slide-out, and the panel unmounts
+	// when that animation ends.
+	rendered, setRendered := g.UseState(a.p.Open)
+	closing, setClosing := g.UseState(false)
+
 	g.UseEffect(func() func() {
-		if !a.p.Open {
-			return nil
+		if a.p.Open {
+			setRendered(true)
+			setClosing(false)
+		} else if rendered {
+			setClosing(true)
 		}
-		return trapFocus(contentRef)
+		return nil
 	}, []any{a.p.Open})
 
-	if !a.p.Open {
+	g.UseEffect(func() func() {
+		if a.p.Open && rendered {
+			return trapFocus(contentRef)
+		}
+		return nil
+	}, []any{a.p.Open, rendered})
+
+	if !rendered {
 		return nil
 	}
 	close := func() {
@@ -69,21 +94,32 @@ func sheetView(a sheetArgs) *g.Node {
 			a.p.OnClose()
 		}
 	}
+	panelAnim, overlayAnim := sheetSideAnim[side], "animate-overlay-in"
+	if closing {
+		panelAnim, overlayAnim = sheetSideAnimOut[side], "animate-overlay-out"
+	}
 	return g.Portal(
 		g.Div(
-			g.Class("fixed inset-0 z-50 bg-black/80 animate-overlay-in"),
+			g.Class(style.CN("fixed inset-0 z-50 bg-black/80", overlayAnim)),
 			g.Data("slot", "sheet-overlay"),
 			g.OnClick(func(*g.Event) { close() }),
 		),
 		g.Div(
-			g.Class(style.CN("fixed z-50 flex flex-col gap-4 bg-background p-6 shadow-lg", sheetSideClasses[side], sheetSideAnim[side], a.p.Class)),
+			g.Class(style.CN("fixed z-50 flex flex-col gap-4 bg-background p-6 shadow-lg", sheetSideClasses[side], panelAnim, a.p.Class)),
 			g.Role("dialog"),
 			g.Aria("modal", "true"),
 			g.TabIndex(-1),
 			g.Data("slot", "sheet-content"),
 			g.Data("side", string(side)),
+			g.Data("state", sheetState(closing)),
 			g.BindRef(contentRef),
 			g.OnClick(func(e *g.Event) { e.StopPropagation() }),
+			g.On("animationend", func(e *g.Event) {
+				if closing && strings.HasPrefix(e.Str("animationName"), "slide-out") {
+					setRendered(false)
+					setClosing(false)
+				}
+			}),
 			g.OnKeyDown(func(e *g.Event) {
 				switch e.Key() {
 				case "Escape":
@@ -95,6 +131,13 @@ func sheetView(a sheetArgs) *g.Node {
 			a.children,
 		),
 	)
+}
+
+func sheetState(closing bool) string {
+	if closing {
+		return "closing"
+	}
+	return "open"
 }
 
 func SheetHeader(args ...any) *g.Node {

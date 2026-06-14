@@ -190,24 +190,35 @@ const themeCSS = `@import "tailwindcss";
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* Overlay enter animations used by the ui Dialog/Sheet/Drawer components. */
+  /* Overlay enter/leave animations used by the ui Dialog/Sheet/Drawer. */
   --animate-overlay-in: overlay-in 0.2s ease;
+  --animate-overlay-out: overlay-out 0.2s ease;
   --animate-dialog-in: dialog-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   --animate-slide-in-right: slide-in-right 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   --animate-slide-in-left: slide-in-left 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   --animate-slide-in-top: slide-in-top 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   --animate-slide-in-bottom: slide-in-bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-slide-out-right: slide-out-right 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-slide-out-left: slide-out-left 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-slide-out-top: slide-out-top 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-slide-out-bottom: slide-out-bottom 0.25s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes overlay-out { from { opacity: 1; } to { opacity: 0; } }
+/* The dialog centers with the translate property, so it only scales/fades. */
 @keyframes dialog-in {
-  from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
-  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
 }
 @keyframes slide-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
 @keyframes slide-in-left { from { transform: translateX(-100%); } to { transform: translateX(0); } }
 @keyframes slide-in-top { from { transform: translateY(-100%); } to { transform: translateY(0); } }
 @keyframes slide-in-bottom { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes slide-out-right { to { transform: translateX(100%); } }
+@keyframes slide-out-left { to { transform: translateX(-100%); } }
+@keyframes slide-out-top { to { transform: translateY(-100%); } }
+@keyframes slide-out-bottom { to { transform: translateY(100%); } }
 
 @layer base {
   * {

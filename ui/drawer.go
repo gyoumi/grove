@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"strings"
+
 	g "github.com/gyoumi/grove"
 	"github.com/gyoumi/grove/style"
 )
@@ -24,14 +26,28 @@ func Drawer(p DrawerProps, children ...any) *g.Node {
 
 func drawerView(a drawerArgs) *g.Node {
 	contentRef := g.UseRef[any](nil)
+	// rendered keeps the panel mounted while it slides back down on close.
+	rendered, setRendered := g.UseState(a.p.Open)
+	closing, setClosing := g.UseState(false)
+
 	g.UseEffect(func() func() {
-		if !a.p.Open {
-			return nil
+		if a.p.Open {
+			setRendered(true)
+			setClosing(false)
+		} else if rendered {
+			setClosing(true)
 		}
-		return trapFocus(contentRef)
+		return nil
 	}, []any{a.p.Open})
 
-	if !a.p.Open {
+	g.UseEffect(func() func() {
+		if a.p.Open && rendered {
+			return trapFocus(contentRef)
+		}
+		return nil
+	}, []any{a.p.Open, rendered})
+
+	if !rendered {
 		return nil
 	}
 	close := func() {
@@ -39,20 +55,31 @@ func drawerView(a drawerArgs) *g.Node {
 			a.p.OnClose()
 		}
 	}
+	panelAnim, overlayAnim, state := "animate-slide-in-bottom", "animate-overlay-in", "open"
+	if closing {
+		panelAnim, overlayAnim, state = "animate-slide-out-bottom", "animate-overlay-out", "closing"
+	}
 	return g.Portal(
 		g.Div(
-			g.Class("fixed inset-0 z-50 bg-black/80 animate-overlay-in"),
+			g.Class(style.CN("fixed inset-0 z-50 bg-black/80", overlayAnim)),
 			g.Data("slot", "drawer-overlay"),
 			g.OnClick(func(*g.Event) { close() }),
 		),
 		g.Div(
-			g.Class(style.CN("fixed inset-x-0 bottom-0 z-50 mt-24 flex max-h-[80vh] flex-col gap-4 rounded-t-xl border bg-background p-6 shadow-lg animate-slide-in-bottom", a.p.Class)),
+			g.Class(style.CN("fixed inset-x-0 bottom-0 z-50 mt-24 flex max-h-[80vh] flex-col gap-4 rounded-t-xl border bg-background p-6 shadow-lg", panelAnim, a.p.Class)),
 			g.Role("dialog"),
 			g.Aria("modal", "true"),
 			g.TabIndex(-1),
 			g.Data("slot", "drawer-content"),
+			g.Data("state", state),
 			g.BindRef(contentRef),
 			g.OnClick(func(e *g.Event) { e.StopPropagation() }),
+			g.On("animationend", func(e *g.Event) {
+				if closing && strings.HasPrefix(e.Str("animationName"), "slide-out") {
+					setRendered(false)
+					setClosing(false)
+				}
+			}),
 			g.OnKeyDown(func(e *g.Event) {
 				switch e.Key() {
 				case "Escape":
