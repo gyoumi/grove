@@ -103,8 +103,10 @@ should read changing data through a `UseRef`.
 
 ## Routing
 
-`grove/router` is a small hash router (`#/event/42` — shareable links and
-back/forward with no server config; in tests the path lives in memory):
+`grove/router` is a small client-side router driving the real URL path with
+the History API (`/event/42`, clean links and back/forward; in tests the
+path lives in memory). `grove serve` falls back to `index.html` for unknown
+paths so deep links work; a production host needs the same fallback:
 
 ```go
 router.Routes(

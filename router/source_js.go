@@ -3,38 +3,41 @@
 package router
 
 import (
-	"strings"
 	"syscall/js"
 )
 
-// hashSource keeps the path in location.hash so links are shareable and
-// back/forward work.
-type hashSource struct {
+// historySource keeps the path in the real URL via the History API, so links
+// are clean (/event/42, no #) and back/forward work. Hosting the built app
+// needs a fallback that serves index.html for unknown paths; grove serve
+// does this, and grove build documents it.
+type historySource struct {
 	subs     subscribers
 	listened bool
 	cb       js.Func
 }
 
-var src source = &hashSource{}
+var src source = &historySource{}
 
-func (h *hashSource) path() string {
-	hash := js.Global().Get("location").Get("hash").String()
-	return normalize(strings.TrimPrefix(hash, "#"))
+func (h *historySource) path() string {
+	return normalize(js.Global().Get("location").Get("pathname").String())
 }
 
-func (h *hashSource) navigate(p string) {
-	// Triggers a hashchange event, which notifies subscribers.
-	js.Global().Get("location").Set("hash", p)
+func (h *historySource) navigate(p string) {
+	// pushState changes the URL without a reload and does not fire popstate,
+	// so notify subscribers directly.
+	js.Global().Get("history").Call("pushState", js.Null(), "", p)
+	h.subs.notify()
 }
 
-func (h *hashSource) subscribe(fn func()) func() {
+func (h *historySource) subscribe(fn func()) func() {
 	if !h.listened {
 		h.listened = true
+		// popstate fires on back/forward navigation.
 		h.cb = js.FuncOf(func(js.Value, []js.Value) any {
 			h.subs.notify()
 			return nil
 		})
-		js.Global().Call("addEventListener", "hashchange", h.cb)
+		js.Global().Call("addEventListener", "popstate", h.cb)
 	}
 	return h.subs.add(fn)
 }

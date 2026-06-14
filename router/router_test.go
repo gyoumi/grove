@@ -61,7 +61,7 @@ func TestLinkHref(t *testing.T) {
 	router.Navigate("/")
 	r := testdom.Mount(routedApp())
 	link := r.FindByAttr("id", "to-event")
-	if link.Attrs["href"] != "#/event/42" {
+	if link.Attrs["href"] != "/event/42" {
 		t.Fatalf("link href = %q", link.Attrs["href"])
 	}
 }

@@ -68,6 +68,13 @@ func runServe(args []string) error {
 				return
 			}
 		}
+		// SPA fallback: a path with no file extension is a client-side route
+		// (/components, /event/42), so serve index.html and let the router
+		// handle it. Missing assets (.wasm, .css, …) still 404.
+		if filepath.Ext(path) == "" {
+			serveIndex(w, appDir)
+			return
+		}
 		http.NotFound(w, r)
 	})
 

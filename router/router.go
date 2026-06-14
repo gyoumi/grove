@@ -1,7 +1,9 @@
 // Package router is a small client-side router for grove apps. In the
-// browser it drives the URL hash (#/event/42), so deep links and
-// back/forward work with no server configuration; outside the browser
-// (tests) it keeps the path in memory with the same API.
+// browser it drives the real URL path with the History API (/event/42, no
+// #), so links are clean and back/forward work; outside the browser (tests)
+// it keeps the path in memory with the same API. Hosting a built app needs
+// a fallback that serves index.html for unknown paths — grove serve does
+// this for you.
 //
 //	router.Routes(
 //	    router.Route{Pattern: "/", Render: home},
@@ -54,11 +56,13 @@ func Path() string { return src.path() }
 // Navigate switches to the given path, e.g. router.Navigate("/event/42").
 func Navigate(path string) { src.navigate(normalize(path)) }
 
-// Link renders an anchor that navigates without a page load. Children and
-// options are passed through to the anchor element.
+// Link renders an anchor that navigates without a page load. The href is a
+// clean path (/event/42), so links are shareable and right-click "open in
+// new tab" works; the click is intercepted for client-side navigation.
+// Children and options are passed through to the anchor element.
 func Link(to string, args ...any) *g.Node {
 	all := []any{
-		g.Href("#" + normalize(to)),
+		g.Href(normalize(to)),
 		g.OnClick(func(e *g.Event) {
 			e.PreventDefault()
 			Navigate(to)
