@@ -220,7 +220,8 @@ themeable design system on top:
    Dropdown, ContextMenu, Menubar, and NavigationMenu (side/align placement,
    outside-click and Escape dismissal, arrow-key focus, and viewport collision
    handling — panels flip to the other side, shift until they fit, and
-   re-measure on window resize). All of it is plain Tailwind on the theme
+   re-measure on window resize). A `Toaster` plus the imperative `ui.Toast`
+   gives transient notifications. All of it is plain Tailwind on the theme
    variables:
 
 ```go
@@ -350,7 +351,6 @@ toolchain stays the default.
   `g.BindRef` ids to live nodes after each flush)
 - Heavier `ui` components, as grove-native takes (no JS-library
   dependency):
-  - **Toasts** — a portal + context dispatcher for transient notifications
   - **Data table** — sorting, filtering, and pagination over `Table`
   - **Sidebar** — a collapsible app shell that folds into a `Sheet` on
     small screens

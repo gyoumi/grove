@@ -68,6 +68,7 @@ var components = map[string][]string{
 	"tabs":            {"tabs.go"},
 	"textarea":        {"textarea.go"},
 	"time-picker":     {"time_picker.go", "icon.go", "popover.go", "popover_js.go", "popover_stub.go"},
+	"toast":           {"toast.go", "toast_js.go", "toast_stub.go", "icon.go"},
 	"toggle":          {"toggle.go"},
 	"toggle-group":    {"toggle_group.go", "toggle.go"},
 	"tooltip":         {"tooltip.go"},
