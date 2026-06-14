@@ -192,16 +192,16 @@ const themeCSS = `@import "tailwindcss";
 
   /* Overlay enter/leave animations used by the ui Dialog/Sheet/Drawer. */
   --animate-overlay-in: overlay-in 0.2s ease;
-  --animate-overlay-out: overlay-out 0.2s ease;
+  --animate-overlay-out: overlay-out 0.2s ease forwards;
   --animate-dialog-in: dialog-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   --animate-slide-in-right: slide-in-right 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   --animate-slide-in-left: slide-in-left 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   --animate-slide-in-top: slide-in-top 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   --animate-slide-in-bottom: slide-in-bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-  --animate-slide-out-right: slide-out-right 0.25s cubic-bezier(0.32, 0.72, 0, 1);
-  --animate-slide-out-left: slide-out-left 0.25s cubic-bezier(0.32, 0.72, 0, 1);
-  --animate-slide-out-top: slide-out-top 0.25s cubic-bezier(0.32, 0.72, 0, 1);
-  --animate-slide-out-bottom: slide-out-bottom 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-slide-out-right: slide-out-right 0.25s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  --animate-slide-out-left: slide-out-left 0.25s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  --animate-slide-out-top: slide-out-top 0.25s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  --animate-slide-out-bottom: slide-out-bottom 0.25s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
 @keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
