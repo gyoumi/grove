@@ -1,0 +1,22 @@
+package gallery
+
+import (
+	g "github.com/gyoumi/grove"
+	"{{MODULE}}/ui"
+)
+
+func feedbackSection() *g.Node {
+	return section("Feedback",
+		ui.Alert(ui.AlertProps{}, ui.AlertTitle("Heads up"), ui.AlertDescription("This is an informational alert.")),
+		ui.Alert(ui.AlertProps{Variant: ui.AlertDestructive}, ui.AlertTitle("Error"), ui.AlertDescription("Something went wrong.")),
+		g.Div(g.Class("flex items-center gap-4"),
+			ui.Progress(66, "max-w-xs"),
+			ui.Spinner("size-5"),
+			ui.Badge(ui.BadgeProps{Variant: ui.BadgeSecondary}, ui.Icon("circle-check", "size-3 text-emerald-500"), "Saved"),
+		),
+		g.Div(g.Class("flex items-center gap-3"),
+			ui.Skeleton("size-10 rounded-full"),
+			g.Div(g.Class("flex flex-col gap-2"), ui.Skeleton("h-3 w-32"), ui.Skeleton("h-3 w-24")),
+		),
+	)
+}

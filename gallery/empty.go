@@ -1,0 +1,19 @@
+package gallery
+
+import (
+	g "github.com/gyoumi/grove"
+	"github.com/gyoumi/grove/ui"
+)
+
+func emptySection() *g.Node {
+	return section("Empty state",
+		ui.Empty(
+			ui.EmptyHeader(
+				ui.EmptyMedia(ui.Icon("search", "size-6")),
+				ui.EmptyTitle("No results"),
+				ui.EmptyDescription("Try adjusting your filters."),
+			),
+			ui.EmptyContent(ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline, Size: ui.ButtonSizeSm}, "Clear filters")),
+		),
+	)
+}

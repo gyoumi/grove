@@ -1,0 +1,34 @@
+package gallery
+
+import (
+	g "github.com/gyoumi/grove"
+	"{{MODULE}}/ui"
+)
+
+func layoutSection() *g.Node {
+	scroll := []any{g.Class("flex flex-col gap-2 text-sm")}
+	for i := 1; i <= 12; i++ {
+		scroll = append(scroll, g.Div(g.Class("rounded bg-muted/50 px-2 py-1"), g.Textf("Tag %d", i)))
+	}
+
+	return section("Layout",
+		g.Div(g.Class("grid items-start gap-4 sm:grid-cols-2"),
+			ui.Card(
+				ui.CardHeader(ui.CardTitle("Card"), ui.CardDescription("A surface for grouped content.")),
+				ui.CardContent(ui.TypographyMuted("Cards frame related information with a border, padding, and a subtle shadow.")),
+				ui.CardFooter(ui.Button(ui.ButtonProps{Size: ui.ButtonSizeSm}, "Action")),
+			),
+			g.Div(g.Class("flex flex-col gap-4"),
+				ui.AspectRatio("16/9",
+					g.Div(g.Class("flex size-full items-center justify-center rounded-lg bg-muted text-sm font-medium text-muted-foreground"), "16 / 9"),
+				),
+				g.Div(g.Class("flex items-center gap-3 text-sm text-muted-foreground"),
+					g.Span("Docs"), ui.Separator(true, g.Class("h-4")),
+					g.Span("Guide"), ui.Separator(true, g.Class("h-4")),
+					g.Span("API"),
+				),
+				ui.ScrollArea("h-28 rounded-md border p-3", g.Div(scroll...)),
+			),
+		),
+	)
+}

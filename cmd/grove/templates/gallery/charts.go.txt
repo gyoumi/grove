@@ -1,0 +1,25 @@
+package gallery
+
+import (
+	g "github.com/gyoumi/grove"
+	"{{MODULE}}/ui"
+)
+
+func chartsSection() *g.Node {
+	return section("Charts",
+		g.Div(g.Class("grid gap-4 sm:grid-cols-2"),
+			g.Div(g.Class("rounded-lg border p-4"),
+				ui.TypographySmall("Weekly signups"),
+				ui.Chart(ui.ChartProps{Type: ui.ChartArea, Class: "mt-2 h-40",
+					Series: []ui.ChartSeries{{Values: []float64{12, 19, 14, 23, 28, 24, 33}}},
+					Labels: []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}}),
+			),
+			g.Div(g.Class("rounded-lg border p-4"),
+				ui.TypographySmall("Events per project"),
+				ui.Chart(ui.ChartProps{Type: ui.ChartBar, Class: "mt-2 h-40",
+					Series: []ui.ChartSeries{{Values: []float64{8, 15, 6, 12, 9}}},
+					Labels: []string{"A", "B", "C", "D", "E"}}),
+			),
+		),
+	)
+}

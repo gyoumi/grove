@@ -1,0 +1,37 @@
+package gallery
+
+import (
+	g "github.com/gyoumi/grove"
+	"{{MODULE}}/ui"
+)
+
+func dataDisplaySection() *g.Node {
+	return section("Data & display",
+		ui.Table(
+			ui.TableHeader(ui.TableRow(ui.TableHead("Name"), ui.TableHead("Role"), ui.TableHead("Status"))),
+			ui.TableBody(
+				ui.TableRow(ui.TableCell(g.Strong("Ada")), ui.TableCell("Engineer"), ui.TableCell(ui.Badge(ui.BadgeProps{Variant: ui.BadgeSecondary}, "Active"))),
+				ui.TableRow(ui.TableCell(g.Strong("Lin")), ui.TableCell("Designer"), ui.TableCell(ui.Badge(ui.BadgeProps{Variant: ui.BadgeOutline}, "Away"))),
+			),
+		),
+		ui.Item(
+			ui.ItemMedia(ui.Avatar(ui.AvatarProps{Name: "Ada Lovelace"})),
+			ui.ItemContent(ui.ItemTitle("Ada Lovelace"), ui.ItemDescription("ada@analytical.engine")),
+			ui.ItemActions(ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline, Size: ui.ButtonSizeSm}, "Invite")),
+		),
+		ui.Breadcrumb(ui.BreadcrumbList(
+			ui.BreadcrumbItem(ui.BreadcrumbLink("#", "Home")),
+			ui.BreadcrumbSeparator(),
+			ui.BreadcrumbItem(ui.BreadcrumbLink("#", "Components")),
+			ui.BreadcrumbSeparator(),
+			ui.BreadcrumbItem(ui.BreadcrumbPage("Gallery")),
+		)),
+		ui.Pagination(ui.PaginationContent(
+			ui.PaginationItem(ui.PaginationPrevious("#")),
+			ui.PaginationItem(ui.PaginationLink("#", false, "1")),
+			ui.PaginationItem(ui.PaginationLink("#", true, "2")),
+			ui.PaginationItem(ui.PaginationLink("#", false, "3")),
+			ui.PaginationItem(ui.PaginationNext("#")),
+		)),
+	)
+}

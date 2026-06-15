@@ -1,0 +1,75 @@
+package gallery
+
+import (
+	"fmt"
+
+	g "github.com/gyoumi/grove"
+	"{{MODULE}}/ui"
+)
+
+func formControlsSection() *g.Node {
+	sel, setSel := g.UseState("")
+	combo, setCombo := g.UseState("")
+	radio, setRadio := g.UseState("standard")
+	slider, setSlider := g.UseState(40.0)
+	otp, setOtp := g.UseState("")
+
+	return section("Form controls",
+		g.Div(g.Class("grid gap-5 sm:grid-cols-2"),
+			ui.Field(
+				ui.FieldLabel("g-name", "Name"),
+				ui.Input(ui.InputProps{ID: "g-name", Placeholder: "Ada Lovelace"}),
+				ui.FieldDescription("Your full name."),
+			),
+			ui.Field(
+				ui.FieldLabel("", "Search"),
+				ui.InputGroup(
+					ui.InputGroupAddon(ui.Icon("search")),
+					ui.Input(ui.InputProps{Placeholder: "Search…"}),
+					ui.InputGroupAddon(ui.Kbd("⌘K")),
+				),
+			),
+			ui.Field(
+				ui.FieldLabel("", "Select (styled)"),
+				ui.Select(ui.SelectProps{
+					Value: sel, OnChange: setSel, Placeholder: "Pick a fruit",
+					Options: []ui.SelectOption{{Value: "apple", Label: "Apple"}, {Value: "banana", Label: "Banana"}, {Value: "cherry", Label: "Cherry"}},
+				}),
+			),
+			ui.Field(
+				ui.FieldLabel("", "Combobox (searchable)"),
+				ui.Combobox(ui.ComboboxProps{
+					Value: combo, OnChange: setCombo, Placeholder: "Pick a framework", SearchPlaceholder: "Search frameworks…",
+					Options: []ui.SelectOption{{Value: "grove", Label: "grove"}, {Value: "react", Label: "React"}, {Value: "vue", Label: "Vue"}, {Value: "svelte", Label: "Svelte"}, {Value: "solid", Label: "Solid"}},
+				}),
+			),
+			ui.Field(
+				ui.FieldLabel("", "Native select"),
+				ui.NativeSelect(ui.NativeSelectProps{
+					Placeholder: "Choose…",
+					Options:     []ui.SelectOption{{Value: "s", Label: "Small"}, {Value: "m", Label: "Medium"}, {Value: "l", Label: "Large"}},
+				}),
+			),
+			ui.Field(
+				ui.FieldLabel("", "Message"),
+				ui.Textarea(ui.TextareaProps{Placeholder: "Write something…", Rows: 3}),
+			),
+			ui.Field(
+				ui.FieldLabel("", fmt.Sprintf("Slider (%d)", int(slider))),
+				ui.Slider(ui.SliderProps{Value: slider, OnChange: setSlider}),
+			),
+		),
+		g.Div(g.Class("flex flex-wrap items-center gap-6"),
+			ui.Label("", g.Span(g.Class("flex items-center gap-2"), ui.Checkbox(ui.CheckboxProps{}), "Accept terms")),
+			ui.Label("", g.Span(g.Class("flex items-center gap-2"), ui.Switch(ui.SwitchProps{}), "Notifications")),
+			ui.RadioGroup(ui.RadioGroupProps{Value: radio, OnChange: setRadio, Class: "grid-flow-col"},
+				ui.RadioItem{Value: "standard", Label: "Standard"},
+				ui.RadioItem{Value: "express", Label: "Express"},
+			),
+		),
+		g.Div(g.Class("flex items-center gap-3"),
+			ui.InputOTP(ui.InputOTPProps{Value: otp, Length: 4, OnChange: setOtp}),
+			ui.TypographyMuted(fmt.Sprintf("code: %s", otp)),
+		),
+	)
+}

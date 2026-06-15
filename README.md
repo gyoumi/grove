@@ -45,6 +45,12 @@ design system preconfigured. No Node toolchain is involved: the CLI uses the
 Tailwind standalone binary (downloaded once, cached) and plain `go build`
 with `GOOS=js GOARCH=wasm`.
 
+The starter ships the **full `ui` component set** (copied into `ui/` — they're
+yours to edit) and a **component gallery**: a home page plus a `/components`
+route that renders every component, one section per file under `gallery/`.
+It's a live catalog to browse and crib from — delete `gallery/` and the
+`/components` route once you've got your bearings.
+
 ## Components
 
 A component is a function returning `*g.Node`. Wrap it with `g.C0` (no

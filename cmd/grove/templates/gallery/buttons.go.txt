@@ -1,0 +1,26 @@
+package gallery
+
+import (
+	g "github.com/gyoumi/grove"
+	"{{MODULE}}/ui"
+)
+
+func buttonsSection() *g.Node {
+	return section("Buttons",
+		g.Div(g.Class("flex flex-wrap items-center gap-2"),
+			ui.Button(ui.ButtonProps{}, "Default"),
+			ui.Button(ui.ButtonProps{Variant: ui.ButtonSecondary}, "Secondary"),
+			ui.Button(ui.ButtonProps{Variant: ui.ButtonDestructive}, "Destructive"),
+			ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline}, "Outline"),
+			ui.Button(ui.ButtonProps{Variant: ui.ButtonGhost}, "Ghost"),
+			ui.Button(ui.ButtonProps{Variant: ui.ButtonLink}, "Link"),
+			ui.Button(ui.ButtonProps{Size: ui.ButtonSizeIcon}, ui.Icon("plus")),
+			ui.Button(ui.ButtonProps{Disabled: true}, "Disabled"),
+		),
+		ui.ButtonGroup(
+			ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline}, "Day"),
+			ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline}, "Week"),
+			ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline}, "Month"),
+		),
+	)
+}

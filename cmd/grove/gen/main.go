@@ -1,8 +1,10 @@
-// Command gen copies the ui package sources into cmd/grove/templates so
-// `grove add` can embed them. Run from cmd/grove via go generate.
+// Command gen copies the ui and gallery sources into cmd/grove/templates so
+// `grove add` and `grove init` can embed them. Run from cmd/grove via go
+// generate.
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,8 +12,20 @@ import (
 )
 
 func main() {
-	srcDir := filepath.Join("..", "..", "ui")
-	dstDir := filepath.Join("templates", "ui")
+	uiN := copyTree(filepath.Join("..", "..", "ui"), filepath.Join("templates", "ui"), nil)
+	// The gallery imports grove's own ui package; in a scaffolded app that
+	// becomes the app's vendored ui, so swap the import for a placeholder
+	// that grove init fills in with the new module path.
+	galleryN := copyTree(filepath.Join("..", "..", "gallery"), filepath.Join("templates", "gallery"), func(b []byte) []byte {
+		return bytes.ReplaceAll(b, []byte("github.com/gyoumi/grove/ui"), []byte("{{MODULE}}/ui"))
+	})
+	fmt.Printf("gen: copied %d ui + %d gallery files into templates\n", uiN, galleryN)
+}
+
+// copyTree copies every non-test .go file from srcDir into dstDir with a .txt
+// suffix (which keeps the templates out of the CLI's own build), optionally
+// transforming the bytes first.
+func copyTree(srcDir, dstDir string, transform func([]byte) []byte) int {
 	if err := os.MkdirAll(dstDir, 0o755); err != nil {
 		fail(err)
 	}
@@ -29,13 +43,15 @@ func main() {
 		if err != nil {
 			fail(err)
 		}
-		// .txt suffix keeps the templates out of the CLI's own build.
+		if transform != nil {
+			data = transform(data)
+		}
 		if err := os.WriteFile(filepath.Join(dstDir, name+".txt"), data, 0o644); err != nil {
 			fail(err)
 		}
 		n++
 	}
-	fmt.Printf("gen: copied %d ui component files into %s\n", n, dstDir)
+	return n
 }
 
 func fail(err error) {

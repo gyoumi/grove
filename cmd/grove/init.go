@@ -30,10 +30,14 @@ func runInit(args []string) error {
 		gomod += fmt.Sprintf("\nreplace github.com/gyoumi/grove => %s\n", abs)
 	}
 
+	display := name[strings.LastIndex(name, "/")+1:]
+	mainGo := strings.ReplaceAll(initMainGo, "{{MODULE}}", name)
+	mainGo = strings.ReplaceAll(mainGo, "{{APP}}", display)
+
 	files := map[string]string{
 		"go.mod":           gomod,
-		"main.go":          initMainGo,
-		"index.html":       strings.ReplaceAll(initIndexHTML, "{{name}}", name),
+		"main.go":          mainGo,
+		"index.html":       strings.ReplaceAll(initIndexHTML, "{{APP}}", display),
 		"styles/input.css": themeCSS,
 		".gitignore":       "dist/\n",
 	}
@@ -47,6 +51,15 @@ func runInit(args []string) error {
 		}
 	}
 
+	// Vendor the full ui component set and the component gallery, so a new
+	// app ships with every component and a browsable /components catalog.
+	if err := vendorTemplates("ui", filepath.Join(name, "ui"), ""); err != nil {
+		return err
+	}
+	if err := vendorTemplates("gallery", filepath.Join(name, "gallery"), name); err != nil {
+		return err
+	}
+
 	// Resolve the module graph now so grove serve works immediately.
 	tidy := exec.Command("go", "mod", "tidy")
 	tidy.Dir = name
@@ -57,12 +70,40 @@ func runInit(args []string) error {
 		}
 	}
 
-	fmt.Printf("created %s/\n\n", name)
+	fmt.Printf("created %s/ with the full ui component set and a gallery\n\n", name)
 	fmt.Printf("  cd %s\n", name)
 	if *grovePath == "" {
 		fmt.Println("  go get github.com/gyoumi/grove@latest")
 	}
 	fmt.Println("  grove serve")
+	fmt.Println("\nedit ui/ freely (the components are yours); browse them all at /components")
+	return nil
+}
+
+// vendorTemplates writes every embedded template under templates/<sub> into
+// destDir as a .go file, replacing the {{MODULE}} placeholder with module
+// when set (the gallery uses it to import the app's own ui package).
+func vendorTemplates(sub, destDir, module string) error {
+	entries, err := templates.ReadDir("templates/" + sub)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(destDir, 0o755); err != nil {
+		return err
+	}
+	for _, e := range entries {
+		data, err := templates.ReadFile("templates/" + sub + "/" + e.Name())
+		if err != nil {
+			return err
+		}
+		if module != "" {
+			data = []byte(strings.ReplaceAll(string(data), "{{MODULE}}", module))
+		}
+		dest := filepath.Join(destDir, strings.TrimSuffix(e.Name(), ".txt"))
+		if err := os.WriteFile(dest, data, 0o644); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -71,18 +112,54 @@ const initMainGo = `package main
 import (
 	g "github.com/gyoumi/grove"
 	"github.com/gyoumi/grove/dom"
+	"github.com/gyoumi/grove/router"
+	"{{MODULE}}/gallery"
+	"{{MODULE}}/ui"
 )
 
+// App is the root: a small home page and a /components route showing the full
+// grove component gallery. The header links between them and toggles dark
+// mode. Replace Home with your app — the ui/ package and gallery/ are yours.
 func App() *g.Node {
-	count, setCount := g.UseState(0)
-	return g.Div(g.Class("flex min-h-svh flex-col items-center justify-center gap-4 bg-background text-foreground"),
-		g.H1(g.Class("text-3xl font-semibold tracking-tight"), "grove"),
-		g.Button(
-			g.Class("inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90"),
-			g.OnClick(func(*g.Event) { setCount(count + 1) }),
-			g.Textf("count is %d", count),
+	dark, setDark := g.UseState(false)
+	g.UseEffect(func() func() {
+		dom.SetRootClass("dark", dark)
+		return nil
+	}, []any{dark})
+
+	return g.Div(g.Class("mx-auto flex min-h-svh max-w-3xl flex-col gap-6 px-6 pb-6 text-foreground"),
+		g.Header(g.Class("sticky top-0 z-40 -mx-6 flex items-center justify-between border-b border-border/60 bg-background/75 px-6 py-3 backdrop-blur-md"),
+			router.Link("/", g.Class("text-xl font-bold tracking-tight no-underline"), "{{APP}}"),
+			g.Div(g.Class("flex items-center gap-3"),
+				router.Link("/components", g.Class("text-sm font-medium text-muted-foreground no-underline transition-colors hover:text-foreground"),
+					"components"),
+				ui.Tooltip(ui.TooltipProps{Label: "toggle dark mode"},
+					ui.Switch(ui.SwitchProps{ID: "dark-mode", Checked: dark, OnChange: setDark}),
+				),
+			),
 		),
-		g.P(g.Class("text-sm text-muted-foreground"), "edit main.go and save to reload"),
+		router.Routes(
+			router.Route{Pattern: "/", Render: func(router.Params) *g.Node { return g.C0(Home) }},
+			router.Route{Pattern: "/components", Render: func(router.Params) *g.Node { return g.C0(gallery.Page) }},
+			router.Route{Pattern: "*", Render: func(router.Params) *g.Node {
+				return g.P(g.Class("text-sm text-muted-foreground"), "That page doesn't exist.")
+			}},
+		),
+		ui.Toaster(),
+	)
+}
+
+// Home is the starter page. Edit it freely.
+func Home() *g.Node {
+	count, setCount := g.UseState(0)
+	return g.Div(g.Class("flex flex-col items-center gap-5 py-16 text-center animate-rise"),
+		g.H1(g.Class("text-4xl font-bold tracking-tight"), "{{APP}}"),
+		g.P(g.Class("max-w-md text-balance text-muted-foreground"),
+			"A grove app. Edit Home in main.go, or browse every component on the ",
+			router.Link("/components", g.Class("font-medium text-primary underline-offset-4 hover:underline"), "components"),
+			" page."),
+		ui.Button(ui.ButtonProps{OnClick: func(*g.Event) { setCount(count + 1) }},
+			g.Textf("count is %d", count)),
 	)
 }
 
@@ -96,7 +173,7 @@ const initIndexHTML = `<!doctype html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{name}}</title>
+    <title>{{APP}}</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -190,6 +267,9 @@ const themeCSS = `@import "tailwindcss";
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
+  /* A subtle entrance used by the gallery and starter page. */
+  --animate-rise: rise 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
   /* Overlay enter/leave animations used by the ui Dialog/Sheet/Drawer. */
   --animate-overlay-in: overlay-in 0.2s ease;
   --animate-overlay-out: overlay-out 0.2s ease forwards;
@@ -204,6 +284,7 @@ const themeCSS = `@import "tailwindcss";
   --animate-slide-out-bottom: slide-out-bottom 0.25s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes overlay-out { from { opacity: 1; } to { opacity: 0; } }
 /* The dialog centers with the translate property, so it only scales/fades. */

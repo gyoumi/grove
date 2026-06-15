@@ -1,0 +1,56 @@
+// Package gallery renders every grove ui component in one place — a living
+// showcase and visual test surface. Each section is its own component file;
+// Page composes them.
+//
+// The grove starter (grove init) vendors this package and wires Page to a
+// /components route, so a new app ships with a browsable component catalog.
+package gallery
+
+import (
+	g "github.com/gyoumi/grove"
+	"github.com/gyoumi/grove/ui"
+)
+
+// Page is the full component gallery. Mount it on a route to browse every
+// component, themed and dark-mode ready.
+func Page() *g.Node {
+	return g.Div(g.Class("flex flex-col gap-10 py-6 animate-rise"),
+		intro(),
+		g.C0(buttonsSection),
+		g.C0(badgesSection),
+		g.C0(togglesSection),
+		g.C0(formControlsSection),
+		g.C0(feedbackSection),
+		g.C0(layoutSection),
+		g.C0(dataDisplaySection),
+		g.C0(dataTableSection),
+		g.C0(disclosureSection),
+		g.C0(commandSection),
+		g.C0(toastsSection),
+		g.C0(overlaysSection),
+		g.C0(dateTimeSection),
+		g.C0(emptySection),
+		g.C0(chartsSection),
+		g.C0(carouselSection),
+		g.C0(sidebarSection),
+		g.C0(formSection),
+		g.C0(resizableSection),
+		g.C0(typographySection),
+	)
+}
+
+func intro() *g.Node {
+	return g.Div(g.Class("flex flex-col gap-1"),
+		ui.TypographyH2(g.Class("border-0 p-0 text-2xl"), "Component gallery"),
+		ui.TypographyMuted("Every grove ui component, themed and dark-mode ready."),
+	)
+}
+
+// section wraps a titled group of components in a bordered card.
+func section(title string, body ...any) *g.Node {
+	return g.Section(g.Class("flex flex-col gap-3"),
+		g.H3(g.Class("text-xs font-semibold uppercase tracking-wider text-muted-foreground"), title),
+		g.Div(append([]any{g.Class("flex flex-col gap-4 rounded-xl border border-border/60 bg-card/40 p-5")}, body...)...),
+		ui.Separator(false, g.Class("opacity-0")),
+	)
+}

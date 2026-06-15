@@ -1,0 +1,24 @@
+package gallery
+
+import (
+	g "github.com/gyoumi/grove"
+	"github.com/gyoumi/grove/ui"
+)
+
+func commandSection() *g.Node {
+	return section("Command",
+		g.Div(g.Class("max-w-md overflow-hidden rounded-lg border shadow-md"),
+			ui.Command(ui.CommandProps{Placeholder: "Type a command or search…"},
+				ui.CommandGroup{Heading: "Suggestions", Items: []ui.CommandItem{
+					{Value: "Calendar", Label: g.Span(g.Class("flex items-center gap-2"), ui.Icon("calendar", "size-4"), "Calendar")},
+					{Value: "Search", Label: g.Span(g.Class("flex items-center gap-2"), ui.Icon("search", "size-4"), "Search")},
+					{Value: "Clock", Label: g.Span(g.Class("flex items-center gap-2"), ui.Icon("clock", "size-4"), "Clock")},
+				}},
+				ui.CommandGroup{Heading: "Settings", Items: []ui.CommandItem{
+					{Value: "Profile"},
+					{Value: "Billing"},
+				}},
+			),
+		),
+	)
+}

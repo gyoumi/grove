@@ -1,0 +1,87 @@
+package gallery
+
+import (
+	g "github.com/gyoumi/grove"
+	"github.com/gyoumi/grove/ui"
+)
+
+func overlaysSection() *g.Node {
+	dlgOpen, setDlg := g.UseState(false)
+	alertOpen, setAlert := g.UseState(false)
+	sheetOpen, setSheet := g.UseState(false)
+	drawerOpen, setDrawer := g.UseState(false)
+	menuOpen, setMenu := g.UseState(false)
+
+	return section("Overlays",
+		g.Div(g.Class("flex flex-wrap items-center gap-2"),
+			ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline, OnClick: func(*g.Event) { setDlg(true) }}, "Dialog"),
+			ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline, OnClick: func(*g.Event) { setAlert(true) }}, "Alert dialog"),
+			ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline, OnClick: func(*g.Event) { setSheet(true) }}, "Sheet"),
+			ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline, OnClick: func(*g.Event) { setDrawer(true) }}, "Drawer"),
+			ui.Dropdown(ui.DropdownProps{Open: menuOpen, OnClose: func() { setMenu(false) }},
+				ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline, OnClick: func(*g.Event) { setMenu(!menuOpen) }}, "Menu ", ui.Icon("chevron-down", "size-4")),
+				ui.DropdownLabel("Actions"),
+				ui.DropdownItem(ui.DropdownItemProps{}, "Duplicate"),
+				ui.DropdownItem(ui.DropdownItemProps{}, "Archive"),
+				ui.DropdownSeparator(),
+				ui.DropdownItem(ui.DropdownItemProps{Class: "text-destructive"}, "Delete"),
+			),
+		),
+		ui.Menubar(ui.MenubarProps{},
+			ui.MenubarMenu{Label: "File", Items: []any{
+				ui.DropdownItem(ui.DropdownItemProps{}, "New"),
+				ui.DropdownItem(ui.DropdownItemProps{}, "Open"),
+			}},
+			ui.MenubarMenu{Label: "Edit", Items: []any{
+				ui.DropdownItem(ui.DropdownItemProps{}, "Undo"),
+				ui.DropdownItem(ui.DropdownItemProps{}, "Redo"),
+			}},
+		),
+		ui.NavigationMenu(ui.NavigationMenuProps{},
+			ui.NavMenuItem{Label: "Docs", Href: "https://github.com/gyoumi/grove", Target: "_blank"},
+			ui.NavMenuItem{Label: "Resources", Panel: []any{
+				g.Div(g.Class("flex w-48 flex-col gap-1"),
+					g.A(g.Class("rounded px-2 py-1.5 text-sm hover:bg-accent"),
+						g.Href("https://github.com/gyoumi/grove"), g.Attr("target", "_blank"), g.Attr("rel", "noopener noreferrer"),
+						"grove framework"),
+					g.A(g.Class("rounded px-2 py-1.5 text-sm hover:bg-accent"),
+						g.Href("https://github.com/gyoumi/grove#readme"), g.Attr("target", "_blank"), g.Attr("rel", "noopener noreferrer"),
+						"Documentation"),
+				),
+			}},
+		),
+		ui.ContextMenu(ui.ContextMenuProps{},
+			g.Div(g.Class("flex h-20 items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground"), "Right-click here"),
+			ui.DropdownItem(ui.DropdownItemProps{}, "Cut"),
+			ui.DropdownItem(ui.DropdownItemProps{}, "Copy"),
+			ui.DropdownItem(ui.DropdownItemProps{}, "Paste"),
+		),
+		g.Div(g.Class("flex flex-wrap items-center gap-3"),
+			ui.Tooltip(ui.TooltipProps{Label: "A short hint"}, ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline}, "Hover (tooltip)")),
+			ui.HoverCard(ui.HoverCardProps{},
+				ui.Button(ui.ButtonProps{Variant: ui.ButtonOutline}, "Hover (card)"),
+				ui.Item(ui.ItemMedia(ui.Avatar(ui.AvatarProps{Name: "Grove"})), ui.ItemContent(ui.ItemTitle("@grove"), ui.ItemDescription("Go + wasm UI."))),
+			),
+		),
+		ui.Dialog(ui.DialogProps{Open: dlgOpen, OnClose: func() { setDlg(false) }},
+			ui.DialogHeader(ui.DialogTitle("Edit profile"), ui.DialogDescription("Make changes and save.")),
+			ui.Input(ui.InputProps{Placeholder: "Name"}),
+			ui.DialogFooter(ui.Button(ui.ButtonProps{OnClick: func(*g.Event) { setDlg(false) }}, "Save")),
+		),
+		ui.AlertDialog(ui.AlertDialogProps{Open: alertOpen, OnClose: func() { setAlert(false) }},
+			ui.AlertDialogHeader(ui.AlertDialogTitle("Delete event?"), ui.AlertDialogDescription("This cannot be undone.")),
+			ui.AlertDialogFooter(
+				ui.AlertDialogCancel(func(*g.Event) { setAlert(false) }, "Cancel"),
+				ui.AlertDialogAction(func(*g.Event) { setAlert(false) }, "Delete"),
+			),
+		),
+		ui.Sheet(ui.SheetProps{Open: sheetOpen, OnClose: func() { setSheet(false) }, Side: ui.SheetRight},
+			ui.SheetHeader(ui.SheetTitle("Filters"), ui.SheetDescription("Narrow the results.")),
+			ui.SheetFooter(ui.Button(ui.ButtonProps{OnClick: func(*g.Event) { setSheet(false) }}, "Apply")),
+		),
+		ui.Drawer(ui.DrawerProps{Open: drawerOpen, OnClose: func() { setDrawer(false) }},
+			ui.DrawerHeader(ui.DrawerTitle("Quick actions"), ui.DrawerDescription("Swipe-up style panel.")),
+			ui.DrawerFooter(ui.Button(ui.ButtonProps{OnClick: func(*g.Event) { setDrawer(false) }}, "Done")),
+		),
+	)
+}

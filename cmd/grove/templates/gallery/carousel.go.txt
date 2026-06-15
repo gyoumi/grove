@@ -1,0 +1,22 @@
+package gallery
+
+import (
+	g "github.com/gyoumi/grove"
+	"{{MODULE}}/ui"
+)
+
+func carouselSection() *g.Node {
+	return section("Carousel",
+		g.Div(g.Class("mx-auto w-full max-w-sm"),
+			ui.Carousel(ui.CarouselProps{Dots: true},
+				carouselSlide("1", "bg-primary/10"),
+				carouselSlide("2", "bg-emerald-500/10"),
+				carouselSlide("3", "bg-amber-500/10"),
+			),
+		),
+	)
+}
+
+func carouselSlide(label, bg string) *g.Node {
+	return g.Div(g.Class("flex h-40 items-center justify-center rounded-lg text-3xl font-bold text-foreground/60 "+bg), label)
+}
